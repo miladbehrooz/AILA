@@ -16,3 +16,10 @@ class ArticleDocument(BaseDocument):
 
     class Settings:
         name = DataCategory.ARTICLES
+
+
+class YoutubeDocument(BaseDocument):
+    link = StringField(required=True)
+
+    class Settings:
+        name = DataCategory.YOUTUBEVIDEOS
