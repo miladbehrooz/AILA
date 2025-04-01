@@ -1,3 +1,4 @@
+from backend.etl import extractors
 from backend.etl.domain.documents import ArticleDocument
 from urllib.parse import urlparse
 
@@ -8,14 +9,11 @@ from loguru import logger
 
 
 from backend.etl.domain.documents import ArticleDocument
-from .base import BaseCrawler
+from .base import URLExtractor
 
 
-class ArticleCrawler(BaseCrawler):
+class ArticleExtractor(URLExtractor):
     model = ArticleDocument
-
-    def __init__(self) -> None:
-        super().__init__()
 
     def extract(self, link: str, **kwargs) -> None:
         old_model = self.model.find(link=link)
@@ -54,5 +52,5 @@ class ArticleCrawler(BaseCrawler):
 
 
 if __name__ == "__main__":
-    crawler = ArticleCrawler()
-    crawler.extract("https://weaviate.io/blog/advanced-rag")
+    extractor = ArticleExtractor()
+    extractor.extract("https://weaviate.io/blog/advanced-rag")

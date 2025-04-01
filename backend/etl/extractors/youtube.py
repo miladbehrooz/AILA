@@ -3,15 +3,12 @@ from langchain_community.document_loaders import YoutubeLoader
 from loguru import logger
 from mongoengine import disconnect
 from pydantic import validate_email
-from .base import BaseCrawler
+from .base import URLExtractor
 from backend.etl.domain.documents import YoutubeDocument
 
 
-class YoutubeVideoCrawler(BaseCrawler):
+class YoutubeVideoExtractor(URLExtractor):
     model = YoutubeDocument
-
-    def __init__(self) -> None:
-        super().__init__()
 
     def extract(self, link: str, **kwargs) -> None:
         old_model = self.model.find(link=link)
@@ -93,5 +90,5 @@ def _modified_get_video_info(self) -> dict:
 YoutubeLoader._get_video_info = _modified_get_video_info
 
 if __name__ == "__main__":
-    crawler = YoutubeVideoCrawler()
-    crawler.extract("https://www.youtube.com/watch?v=RoR4XJw8wIc")
+    extractor = YoutubeVideoExtractor()
+    extractor.extract("https://www.youtube.com/watch?v=RoR4XJw8wIc")
