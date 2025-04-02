@@ -21,6 +21,13 @@ class ExtractorDispatcher:
 
         return dispatcher
 
+    def register_youtube(self) -> "ExtractorDispatcher":
+        self.register_url_extractor("https://youtube.com", YoutubeVideoExtractor)
+        return self
+
+    def register_pdf(self) -> "ExtractorDispatcher":
+        pass
+
     def register_url_extractor(
         self, domain: str, extractor_cls: type[URLExtractor]
     ) -> "ExtractorDispatcher":
@@ -64,15 +71,16 @@ class ExtractorDispatcher:
 
 
 if __name__ == "__main__":
-    dispatcher = (
-        ExtractorDispatcher()
-        .build()
-        .register_url_extractor("https://youtube.com", YoutubeVideoExtractor)
-        .register_url_extractor("https://www.youtube.com", YoutubeVideoExtractor)
-    )
+    dispatcher = ExtractorDispatcher().build().register_youtube()
+
     extractor = dispatcher.get_extractor(
         "https://www.youtube.com/watch?v=RoR4XJw8wIc"
     ).extract("https://www.youtube.com/watch?v=RoR4XJw8wIc")
     extractor = dispatcher.get_extractor(
         "https://weaviate.io/blog/advanced-rag"
     ).extract("https://weaviate.io/blog/advanced-rag")
+    extractor = dispatcher.get_extractor(
+        "https://www.galileo.ai/blog/mastering-rag-how-to-architect-an-enterprise-rag-system?utm_medium=email&_hsmi=295779507&_hsenc=p2ANqtz-8eAJWFwi6ewcZByCnzRTPlokRRzNluJMKWKRuvtur3C15XZgRBe_IA4NDFn7y0KBNXtjhRWDVfChYwtKF-yqk8IQ9bBQ&utm_content=295779191&utm_source=hs_email#encoder"
+    ).extract(
+        "https://www.galileo.ai/blog/mastering-rag-how-to-architect-an-enterprise-rag-system?utm_medium=email&_hsmi=295779507&_hsenc=p2ANqtz-8eAJWFwi6ewcZByCnzRTPlokRRzNluJMKWKRuvtur3C15XZgRBe_IA4NDFn7y0KBNXtjhRWDVfChYwtKF-yqk8IQ9bBQ&utm_content=295779191&utm_source=hs_email#encoder"
+    )
