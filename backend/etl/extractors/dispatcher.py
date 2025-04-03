@@ -6,6 +6,7 @@ from loguru import logger
 from .base import BaseExtractor, URLExtractor, FileExtractor
 from .article import ArticleExtractor
 from .youtube import YoutubeVideoExtractor
+from .github import GithubExtractor
 from .files import PDFFileExtractor, WordFileExtractor, TextFileExtractor
 
 
@@ -25,15 +26,19 @@ class ExtractorDispatcher:
         self.register_url_extractor("https://youtube.com", YoutubeVideoExtractor)
         return self
 
+    def register_github(self) -> "ExtractorDispatcher":
+        self.register_url_extractor("https://github.com", GithubExtractor)
+        return self
+
     def register_pdf(self) -> "ExtractorDispatcher":
-        pass
+        self.register_file_extractor("pdf", PDFFileExtractor)
+        return self
 
     def register_url_extractor(
         self, domain: str, extractor_cls: type[URLExtractor]
     ) -> "ExtractorDispatcher":
         parsed = urlparse(domain)
         domain = parsed.netloc or parsed.path
-        pattern = rf"https://(www\.)?{re.escape(domain)}/*"
         pattern = rf"https://(www\.)?{re.escape(domain)}/*"
         self._url_extractors[pattern] = extractor_cls
         return self
@@ -71,16 +76,37 @@ class ExtractorDispatcher:
 
 
 if __name__ == "__main__":
-    dispatcher = ExtractorDispatcher().build().register_youtube()
-
+    dispatcher = (
+        ExtractorDispatcher()
+        .build()
+        .register_github()
+        .register_pdf()
+        .register_youtube()
+    )
+    # youtube
     extractor = dispatcher.get_extractor(
         "https://www.youtube.com/watch?v=RoR4XJw8wIc"
     ).extract("https://www.youtube.com/watch?v=RoR4XJw8wIc")
+
+    # article
     extractor = dispatcher.get_extractor(
         "https://weaviate.io/blog/advanced-rag"
     ).extract("https://weaviate.io/blog/advanced-rag")
+
+    # article
     extractor = dispatcher.get_extractor(
         "https://www.galileo.ai/blog/mastering-rag-how-to-architect-an-enterprise-rag-system?utm_medium=email&_hsmi=295779507&_hsenc=p2ANqtz-8eAJWFwi6ewcZByCnzRTPlokRRzNluJMKWKRuvtur3C15XZgRBe_IA4NDFn7y0KBNXtjhRWDVfChYwtKF-yqk8IQ9bBQ&utm_content=295779191&utm_source=hs_email#encoder"
     ).extract(
         "https://www.galileo.ai/blog/mastering-rag-how-to-architect-an-enterprise-rag-system?utm_medium=email&_hsmi=295779507&_hsenc=p2ANqtz-8eAJWFwi6ewcZByCnzRTPlokRRzNluJMKWKRuvtur3C15XZgRBe_IA4NDFn7y0KBNXtjhRWDVfChYwtKF-yqk8IQ9bBQ&utm_content=295779191&utm_source=hs_email#encoder"
     )
+
+    # book
+    extractor = dispatcher.get_extractor("backend/data/book.pdf").extract(
+        "backend/data/book.pdf"
+    )
+
+    # github
+    extractor = dispatcher.get_extractor(
+        "https://github.com/PacktPublishing/LLM-Engineers-Handbook.git"
+    )
+    extractor.extract("https://github.com/PacktPublishing/LLM-Engineers-Handbook.git")

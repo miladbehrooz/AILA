@@ -12,14 +12,30 @@ class BaseDocument(NoSQLBaseDocument):
 
 
 class ArticleDocument(BaseDocument):
-    link = StringField(required=True)
+    link = StringField()
 
     class Settings:
         name = DataCategory.ARTICLES
 
 
 class YoutubeDocument(BaseDocument):
-    link = StringField(required=True)
+    link = StringField()
 
     class Settings:
         name = DataCategory.YOUTUBEVIDEOS
+
+
+class RepositoryDocument(BaseDocument):
+    link = StringField()
+    name = StringField()
+
+    class Settings:
+        name = DataCategory.REPOSITORIES
+
+
+class PDFDocument(BaseDocument):
+    path = StringField()
+    name = StringField()
+
+    class Settings:
+        name = DataCategory.PDFS

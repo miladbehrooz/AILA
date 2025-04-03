@@ -1,6 +1,5 @@
-from langchain_community.document_loaders import YoutubeLoader
-
 from loguru import logger
+from langchain_community.document_loaders import YoutubeLoader
 from mongoengine import disconnect
 from pydantic import validate_email
 from .base import URLExtractor
