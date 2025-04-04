@@ -6,13 +6,12 @@ from backend.etl.domain.types import DataCategory
 
 
 class BaseDocument(NoSQLBaseDocument):
-
     content = DictField()
-    platform = StringField()
 
 
 class ArticleDocument(BaseDocument):
     link = StringField()
+    platform = StringField()
 
     class Settings:
         name = DataCategory.ARTICLES
@@ -20,6 +19,7 @@ class ArticleDocument(BaseDocument):
 
 class YoutubeDocument(BaseDocument):
     link = StringField()
+    platform = StringField()
 
     class Settings:
         name = DataCategory.YOUTUBEVIDEOS
@@ -28,6 +28,7 @@ class YoutubeDocument(BaseDocument):
 class RepositoryDocument(BaseDocument):
     link = StringField()
     name = StringField()
+    platform = StringField()
 
     class Settings:
         name = DataCategory.REPOSITORIES
