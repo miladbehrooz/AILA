@@ -8,7 +8,7 @@ class BaseExtractor(ABC):
     model: type(NoSQLBaseDocument)
 
     @abstractmethod
-    def extract(self, source: str, **kwargs) -> None:
+    def extract(self, **kwargs) -> None:
         pass
 
 
