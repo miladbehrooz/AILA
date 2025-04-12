@@ -15,6 +15,23 @@ services:
     networks:
       - local
     restart: always
+  
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: "laia_qdrant"
+    ports:
+      - 6333:6333
+      - 6334:6334
+    expose:
+      - 6333
+      - 6334
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - local
+    restart: always
+
+
 
   postgres:
     image: postgres:14
@@ -60,6 +77,7 @@ services:
 volumes:
   mongo_data:
   postgres_data:
+  qdrant_data:
 
 
 networks:
