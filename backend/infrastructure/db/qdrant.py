@@ -1,7 +1,7 @@
 from loguru import logger
 from qdrant_clinet import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
-from backend.settings.setting import settings
+from backend.settings.settings import settings
 
 
 class QdrantDatabaseConnector:
@@ -23,3 +23,9 @@ class QdrantDatabaseConnector:
                     host=settings.QDRANT_DATABASE_HOST,
                     port=settings.QDRANT_DATABASE_PORT,
                 )
+            raise
+
+        return cls._instance
+
+
+connection = QdrantDatabaseConnector()
