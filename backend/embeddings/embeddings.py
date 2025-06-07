@@ -11,12 +11,6 @@ from .factory import EmbeddingFactory
 from backend.settings.settings import settings
 
 
-# TODO: check the methods again and make in compatible with the EmbeddingFactory (done)
-# TODO: test the functionality of the EmbeddingModelSingleton class (done)
-# TODO: create new branch and ship the vecotr db related code there (done)
-# TODO: Think about the path of the embeddings class (done)
-
-
 class EmbeddingModelSingleton(metaclass=SingletonMeta):
 
     def __init__(
