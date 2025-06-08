@@ -6,8 +6,8 @@ from loguru import logger
 from numpy.typing import NDArray
 
 
-from .base import SingletonMeta
-from .factory import EmbeddingFactory
+from backend.utils.singleton import SingletonMeta
+from .base import EmbeddingFactory
 from backend.settings.settings import settings
 
 
