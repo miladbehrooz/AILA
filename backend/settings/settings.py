@@ -11,5 +11,16 @@ class Settings(BaseSettings):
     MONGO_DB_USERNAME: str | None = "laia"
     MONGO_DB_PASSWORD: str | None = "laia"
 
+    # Qdrant database
+    QDRANT_DATABASE_HOST: str = "localhost"
+    QDRANT_DATABASE_PORT: int = 6333
+
+    # OpenAI API
+    OPENAI_API_KEY: str | None = None
+
+    # RAG
+    TEXT_EMBEDDING_PROVIDER: str = "openai"
+    TEXT_EMBEDDING_MODEL_NAME: str = "text-embedding-3-small"
+
 
 settings = Settings()
