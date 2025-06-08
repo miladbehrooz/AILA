@@ -1,0 +1,49 @@
+from abc import ABC
+from typing import Optional
+
+from .base import VectorBaseDocument
+from .types import DataCategory
+
+
+class CleanedDocument(VectorBaseDocument, ABC):
+    content: str
+    platform: str
+
+
+class CleanedArticleDocument(CleanedDocument):
+    image: Optional[str] = None
+
+    class Config:
+        name = "cleaned_articles"
+        category = DataCategory.ARTICLES
+        use_vector_index = False
+
+
+class CleanedYoutubeDocument(CleanedDocument):
+    name: str
+    link: str
+
+    class Config:
+        name = "cleaned_youtube_videos"
+        category = DataCategory.YOUTUBEVIDEOS
+        use_vector_index = False
+
+
+class CleanedRepositoryDocument(CleanedDocument):
+    name: str
+    link: str
+
+    class Config:
+        name = "cleaned_repositories"
+        category = DataCategory.REPOSITORIES
+        use_vector_index = False
+
+
+class PDFDocument(CleanedDocument):
+    name: str
+    path = str
+
+    class Config:
+        name = "cleaned_pdfs"
+        category = DataCategory.PDFS
+        use_vector_index = False
