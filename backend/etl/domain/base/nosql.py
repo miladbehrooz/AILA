@@ -1,9 +1,11 @@
+import uuid
 from abc import ABC
-from mongoengine import DateTimeField, Document
+from mongoengine import DateTimeField, Document, UUIDField
 from datetime import datetime
 from typing import Optional, Type, TypeVar, Generic
 from loguru import logger
 from backend.infrastructure.db.mongo import MongoDatabaseConnector
+from backend.etl.domain.exceptions import ImproperlyConfigured
 
 
 _database = MongoDatabaseConnector.connect()
@@ -13,7 +15,7 @@ T = TypeVar("T", bound="NoSQLBaseDocument")
 
 
 class NoSQLBaseDocument(Document, Generic[T]):
-
+    id = UUIDField(primary_key=True, binary=False, default=uuid.uuid4)
     created_at = DateTimeField(default=datetime.utcnow)
     updated_at = DateTimeField(default=datetime.utcnow)
 
@@ -23,8 +25,13 @@ class NoSQLBaseDocument(Document, Generic[T]):
         self.updated_at = datetime.utcnow()
         return super().save(*args, **kwargs)
 
-    def to_dict(self):
-        return self.to_mongo().to_dict()
+    def to_dict(self) -> dict:
+        data = self.to_mongo().to_dict()
+        data["id"] = str(data.pop("_id"))
+        for k, v in data.items():
+            if isinstance(v, uuid.UUID):
+                data[k] = str(v)
+        return data
 
     @classmethod
     def find(cls: Type[T], **filter_options) -> Optional[T]:
@@ -41,3 +48,12 @@ class NoSQLBaseDocument(Document, Generic[T]):
         except Exception as e:
             logger.info(f"Failed to retrieve documents {e}")
             return []
+
+    @classmethod
+    def get_collection_name(cls: Type[T]) -> str:
+        if "collection" in cls._meta:
+            return cls._meta["collection"]
+
+        raise ImproperlyConfigured(
+            f"{cls.__name__} must declare meta = {{'collection': '...'}}."
+        )
