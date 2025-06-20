@@ -7,10 +7,10 @@ from .types import DataCategory
 
 class CleanedDocument(VectorBaseDocument, ABC):
     content: str
-    platform: str
 
 
 class CleanedArticleDocument(CleanedDocument):
+    platform: str
     image: Optional[str] = None
 
     class Config:
@@ -20,7 +20,7 @@ class CleanedArticleDocument(CleanedDocument):
 
 
 class CleanedYoutubeDocument(CleanedDocument):
-    name: str
+    platform: str
     link: str
 
     class Config:
@@ -30,6 +30,7 @@ class CleanedYoutubeDocument(CleanedDocument):
 
 
 class CleanedRepositoryDocument(CleanedDocument):
+    platform: str
     name: str
     link: str
 

@@ -7,7 +7,7 @@ from .cleaning_data_handlers import (
     RepositoryCleaningHandler,
     PDFCleaningHandler,
 )
-from backend.etl.domain.documents import NoSQLBaseDocument
+from backend.etl.domain.documents import NoSQLBaseDocument, YoutubeDocument
 from backend.etl.domain.cleaned_documents import VectorBaseDocument
 from backend.etl.domain.types import DataCategory
 
@@ -32,7 +32,6 @@ class CleaningDispatcher:
 
     @classmethod
     def dispatch(cls, data_model: NoSQLBaseDocument) -> VectorBaseDocument:
-        # TODO: get_colllection_name implementation in NoSQLBaseDocument
         data_category = DataCategory(data_model.get_collection_name())
         handler = cls.factory.create_handler(data_category)
         clean_model = handler.clean(data_model)
