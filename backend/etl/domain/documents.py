@@ -15,6 +15,7 @@ class ArticleDocument(BaseDocument):
     platform = StringField()
     meta = {"collection": "articles"}
 
+
     class Settings:
         name = DataCategory.ARTICLES
 
@@ -34,6 +35,7 @@ class RepositoryDocument(BaseDocument):
     platform = StringField()
     meta = {"collection": "repositories"}
 
+
     class Settings:
         name = DataCategory.REPOSITORIES
 
@@ -42,6 +44,7 @@ class PDFDocument(BaseDocument):
     path = StringField()
     name = StringField()
     meta = {"collection": "pdfs"}
+
 
     class Settings:
         name = DataCategory.PDFS
