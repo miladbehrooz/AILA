@@ -12,8 +12,8 @@ from qdrant_client.models import CollectionInfo, PointStruct, Record
 
 from backend.etl.domain.exceptions import ImproperlyConfigured
 from backend.infrastructure.db.qdrant import connection
-from backend.etl.domain.base import DataCategory
-from backend.etl.networks.embeddings import EmbeddingModelSingleton
+from backend.etl.domain.types import DataCategory
+from backend.embeddings.embeddings import EmbeddingModelSingleton
 
 
 T = TypeVar("T", bound="VectorBaseDocument")
