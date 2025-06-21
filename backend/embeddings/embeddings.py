@@ -32,6 +32,10 @@ class EmbeddingModelSingleton(metaclass=SingletonMeta):
     def model_name(self) -> str:
         return self._model_name
 
+    @property
+    def provider(self) -> str:
+        return self._provider
+
     @cached_property
     def embedding_size(self) -> int:
         dummy = self._model.embed_query("")
