@@ -42,14 +42,20 @@ class EmbeddingModelSingleton(metaclass=SingletonMeta):
         return len(dummy)
 
     @property
-    def max_input_length(self) -> int:
-        # Not every provider exposes this; fall back to a safe default.
-        if not hasattr(self._model, "client") and not hasattr(
-            self._model.client, "max_seq_length"
-        ):
-            logger.warning(f"Model {self._model_name} does not expose max_seq_length.")
-        mil = getattr(self._model.client, "max_seq_length", None)
-        return mil
+    def max_input_length(self) -> int | None:
+        # Try _client first
+        client = getattr(self._model, "_client", None)
+        if client is None:
+            # Try client next
+            client = getattr(self._model, "client", None)
+
+        if client and not hasattr(client, "max_seq_length"):
+            logger.warning(
+                f"Model {self._model_name} from {self._provider} does not expose max_seq_length ."
+            )
+            return None
+
+        return getattr(client, "max_seq_length", None)
 
     def __call__(
         self,
