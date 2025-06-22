@@ -11,6 +11,7 @@ class CleanedDocument(VectorBaseDocument, ABC):
 
 class CleanedArticleDocument(CleanedDocument):
     platform: str
+    link: str
     image: Optional[str] = None
 
     class Config:
