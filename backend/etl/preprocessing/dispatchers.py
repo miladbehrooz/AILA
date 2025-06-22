@@ -89,12 +89,16 @@ class ChunkingDispatcher:
 
 if __name__ == "__main__":
     # Example usage
-    from backend.etl.domain.documents import RepositoryDocument, PDFDocument
+    from backend.etl.domain.documents import (
+        RepositoryDocument,
+        PDFDocument,
+        ArticleDocument,
+    )
 
-    example_data = PDFDocument().find()
+    example_data = ArticleDocument().find()
 
     cleaned_doc = CleaningDispatcher.dispatch(example_data)
-    print(cleaned_doc)
+    # print(cleaned_doc)
     chunked_docs = ChunkingDispatcher.dispatch(cleaned_doc)
     print(len(chunked_docs))
     for chunk in chunked_docs:
