@@ -10,7 +10,7 @@ from .base import VectorBaseDocument
 class EmbeddedChunk(VectorBaseDocument, ABC):
     content: str
     embedding: list[float] | None
-    document_id: str
+    document_id: UUID4
     metadata: dict = Field(default_factory=dict)
 
     @classmethod
