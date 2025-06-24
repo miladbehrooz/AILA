@@ -98,7 +98,6 @@ class YoutubeEmbeddingHandler(EmbeddingDataHandler):
             document_id=data_model.document_id,
             metadata={
                 "embedding_model_provider": embedding_model.provider,
-                "embedding_model_name": embedding_model.model_name,
                 "embedding_size": embedding_model.embedding_size,
                 "max_input_length": embedding_model.max_input_length,
             },
