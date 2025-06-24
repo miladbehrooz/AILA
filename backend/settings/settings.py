@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str | None = None
 
     # RAG
-    TEXT_EMBEDDING_PROVIDER: str = "openai"
-    TEXT_EMBEDDING_MODEL_NAME: str = "text-embedding-3-small"
+    TEXT_EMBEDDING_PROVIDER: str = "huggingface"
+    TEXT_EMBEDDING_MODEL_NAME: str = "all-MiniLM-L6-v2"
 
 
 settings = Settings()
