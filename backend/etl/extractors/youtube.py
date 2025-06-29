@@ -1,7 +1,6 @@
+import requests
+import yt_dlp
 from loguru import logger
-from langchain_community.document_loaders import YoutubeLoader
-from mongoengine import disconnect
-from pydantic import validate_email
 from .base import URLExtractor
 from backend.etl.domain.documents import YoutubeDocument
 
@@ -20,74 +19,93 @@ class YoutubeVideoExtractor(URLExtractor):
 
         try:
             logger.info("Starting loading video transcript")
-            # TODO: change add_video_info to True leads to 404 bad request error due to pytube
-            loader = YoutubeLoader.from_youtube_url(link, add_video_info=False)
-            docs = loader.load()
+            transcript, metadata = self.fetch_youtube_transcript(link)
+            if transcript is None:
+                logger.info(f"No transcript found for {link}")
+                return
+            logger.info("Video transcript loaded successfully")
 
-            if docs and docs[0].page_content.strip():
-                logger.info("Video transcript loaded successfully")
+            content = {
+                "Content": transcript,
+                "Title": metadata.get("Title"),
+                "Auther": metadata.get("Auther"),
+                "Description": metadata.get("Description"),
+            }
 
-            content = {"Content": docs[0].page_content}
-
+            instance = self.model(
+                link=link,
+                content=content,
+                platform="youtube",
+            )
+            instance.save()
+            logger.info(f"Finished scrapping Youtube video: {link}")
         except Exception as e:
-            logger.error(f"Failed to load video transcript: {e}")
-            return None
+            logger.error(f"Error while extracting Youtube video {link}: {e}")
+            raise
 
-        instance = self.model(
-            link=link,
-            content=content,
-            platform="youtube",
-        )
-        instance.save()
+    # TODO: add support for multiple languages
+    @staticmethod
+    def fetch_youtube_transcript(video_url, lang="en"):
 
-        logger.info(f"Finished scrapping Youtube video: {link}")
-
-
-# TODO: This is a fix for the pytube issue but needs adding autentucation
-def _modified_get_video_info(self) -> dict:
-    """Get important video information.
-
-    Components include:
-        - title
-        - description
-        - thumbnail URL,
-        - publish_date
-        - channel author
-        - and more.
-    """
-    try:
-        from pytube import YouTube
-
-    except ImportError:
-        raise ImportError(
-            'Could not import "pytube" Python package. '
-            "Please install it with `pip install pytube`."
-        )
-        yt = YouTube(
-            f"https://www.youtube.com/watch?v={self.video_id}",
-            use_oauth=True,
-            allow_oauth_cache=True,
-        )
-
-        video_info = {
-            "title": yt.title or "Unknown",
-            "description": yt.description or "Unknown",
-            "view_count": yt.views or 0,
-            "thumbnail_url": yt.thumbnail_url or "Unknown",
-            "publish_date": (
-                yt.publish_date.strftime("%Y-%m-%d %H:%M:%S")
-                if yt.publish_date
-                else "Unknown"
-            ),
-            "length": yt.length or 0,
-            "author": yt.author or "Unknown",
+        ydl_opts = {
+            "skip_download": True,
         }
-        return video_info
 
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=False)
 
-# Monkey patch the method
-YoutubeLoader._get_video_info = _modified_get_video_info
+        # Build video metadata dictionary
+        video_metadata = {
+            "Title": info.get("title"),
+            "Author": info.get("uploader"),
+            "Description": info.get("description"),
+        }
+
+        transcript_text = None
+
+        # Check manual subtitles
+        subtitles = info.get("subtitles", {})
+
+        for lang_code, tracks in subtitles.items():
+            if lang_code.lower().startswith(lang.lower()):
+                logger.info(f"Found manual subtitles for {lang_code} in {video_url}.")
+                vtt_url = None
+                for track in tracks:
+                    if track["ext"] == "vtt":
+                        vtt_url = track["url"]
+                        break
+                if vtt_url:
+                    response = requests.get(vtt_url)
+                    response.raise_for_status()
+                    transcript_text = response.text
+                    break
+
+        # Check automatic captions if no manual found
+        if transcript_text is None:
+            captions = info.get("automatic_captions", {})
+            for lang_code, tracks in captions.items():
+                if lang_code.lower().startswith(lang.lower()):
+                    logger.info(
+                        f"No manual subtitles found. Using automatic captions for {lang_code} in {video_url}."
+                    )
+                    vtt_url = None
+                    for track in tracks:
+                        if track["ext"] == "vtt":
+                            vtt_url = track["url"]
+                            break
+                    if vtt_url:
+                        response = requests.get(vtt_url)
+                        response.raise_for_status()
+                        transcript_text = response.text
+                        break
+
+        if transcript_text is None:
+            logger.info(f"No subtitles found for any {lang} dialect in {video_url}.")
+
+        return transcript_text, video_metadata
+
 
 if __name__ == "__main__":
+
     extractor = YoutubeVideoExtractor()
-    extractor.extract("https://www.youtube.com/watch?v=RoR4XJw8wIc")
+    extractor.extract("https://www.youtube.com/watch?v=L94WBLL0KjY")
