@@ -24,7 +24,11 @@ from .embedding_data_handlers import (
     PDFEmbeddingHandler,
 )
 
-from backend.etl.domain.documents import NoSQLBaseDocument, RepositoryDocument
+from backend.etl.domain.documents import (
+    NoSQLBaseDocument,
+    RepositoryDocument,
+    YoutubeDocument,
+)
 from backend.etl.domain.cleaned_documents import VectorBaseDocument
 from backend.etl.domain.types import DataCategory
 
@@ -152,12 +156,15 @@ if __name__ == "__main__":
         ArticleDocument,
     )
 
-    example_data = RepositoryDocument().find()
+    example_data = YoutubeDocument().find()
 
     cleaned_doc = CleaningDispatcher.dispatch(example_data)
-    # print(cleaned_doc)
+
+    # with open("cleaned_doc.txt", "w") as f:
+    #     f.write(cleaned_doc.content)
+
     chunked_docs = ChunkingDispatcher.dispatch(cleaned_doc)
     print(len(chunked_docs))
     embedded_docs = EmbeddingDispatcher.dispatch(chunked_docs)
     print(len(embedded_docs))
-    print(embedded_docs[0])
+    print(len(embedded_docs[0].content))

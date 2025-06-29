@@ -15,7 +15,7 @@ from backend.etl.domain.documents import (
     YoutubeDocument,
     PDFDocument,
 )
-from .operations.cleaning import clean_text
+from .operations.cleaning import clean_text, clean_youtube_transcript
 
 
 DocumentT = TypeVar("DocumentT", bound=BaseDocument)
@@ -56,7 +56,7 @@ class YoutubeCleaningHandler(CleaningDataHandler):
     def clean(self, data_model: YoutubeDocument) -> CleanedYoutubeDocument:
         return CleanedYoutubeDocument(
             id=data_model.id,
-            content=clean_text(" #### ".join(data_model.content.values())),
+            content=clean_youtube_transcript(data_model.content["Content"]),
             platform=data_model.platform,
             link=data_model.link,
         )
