@@ -5,6 +5,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
+    # Logging
+    LOG_FILE_PATH: str = "backend/logs/laia.log"
+    LOG_LEVEL: str = "INFO"
+    LOG_ROTATION: str = "5 MB"
+    LOG_RETENTION: str = "7 days"
+
     # MongoDB database
     MONGO_DB_NAME: str = "laia"
     MONGO_DB_HOST: str | None = "localhost:27017"
