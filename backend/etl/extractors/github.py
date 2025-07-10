@@ -49,8 +49,14 @@ class GithubExtractor(URLExtractor):
                     with open(os.path.join(root, file), "r", errors="ignore") as f:
                         tree[file_path] = f.read().replace(" ", "")
 
+            batch_id = kwargs.get("batch_id", "None")
+
             instance = self.model(
-                content=tree, name=repo_name, link=link, platform="github"
+                content=tree,
+                name=repo_name,
+                link=link,
+                platform="github",
+                batch_id=batch_id,
             )
             instance.save()
 

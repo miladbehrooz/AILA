@@ -32,10 +32,13 @@ class YoutubeVideoExtractor(URLExtractor):
                 "Description": metadata.get("Description"),
             }
 
+            batch_id = kwargs.get("batch_id", "None")
+
             instance = self.model(
                 link=link,
                 content=content,
                 platform="youtube",
+                batch_id=batch_id,
             )
             instance.save()
             logger.info(f"Finished scrapping Youtube video: {link}")

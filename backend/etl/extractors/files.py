@@ -24,11 +24,10 @@ class PDFFileExtractor(FileExtractor):
         content = content.document.export_to_markdown()
 
         content = {"Content": content}
+        batch_id = kwargs.get("batch_id", "None")
 
         instance = self.model(
-            path=path,
-            content=content,
-            name=file_name,
+            path=path, content=content, name=file_name, batch_id=batch_id
         )
         instance.save()
 

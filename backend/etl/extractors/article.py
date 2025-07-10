@@ -30,7 +30,6 @@ class ArticleExtractor(URLExtractor):
         html2text = Html2TextTransformer()
         docs_transformed = html2text.transform_documents(docs)
         doc_transformed = docs_transformed[0]
-
         content = {
             "Title": doc_transformed.metadata.get("title"),
             "Subtitle": doc_transformed.metadata.get("description"),
@@ -40,11 +39,10 @@ class ArticleExtractor(URLExtractor):
 
         parsed_url = urlparse(link)
         platform = parsed_url.netloc
+        batch_id = kwargs.get("batch_id", "None")
 
         instance = self.model(
-            content=content,
-            link=link,
-            platform=platform,
+            content=content, link=link, platform=platform, batch_id=batch_id
         )
         instance.save()
 

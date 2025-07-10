@@ -7,6 +7,7 @@ from backend.etl.domain.types import DataCategory
 
 class BaseDocument(NoSQLBaseDocument):
     content = DictField()
+    batch_id = StringField()
     meta = {"abstract": True}
 
 
@@ -14,7 +15,6 @@ class ArticleDocument(BaseDocument):
     link = StringField()
     platform = StringField()
     meta = {"collection": "articles"}
-
 
     class Settings:
         name = DataCategory.ARTICLES
@@ -35,7 +35,6 @@ class RepositoryDocument(BaseDocument):
     platform = StringField()
     meta = {"collection": "repositories"}
 
-
     class Settings:
         name = DataCategory.REPOSITORIES
 
@@ -44,7 +43,6 @@ class PDFDocument(BaseDocument):
     path = StringField()
     name = StringField()
     meta = {"collection": "pdfs"}
-
 
     class Settings:
         name = DataCategory.PDFS
