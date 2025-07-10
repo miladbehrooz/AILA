@@ -3,6 +3,7 @@ from loguru import logger
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from mongoengine.base import document
+from yt_dlp.utils import str_to_int
 from backend.etl.domain.base.nosql import NoSQLBaseDocument
 from backend.etl.domain.documents import (
     ArticleDocument,
@@ -12,12 +13,12 @@ from backend.etl.domain.documents import (
 )
 
 
-def query_data_warehouse() -> Annotated[list, "raw documents"]:
+def query_data_warehouse(batch_id: str) -> Annotated[list, "raw documents"]:
 
     documents = []
     logger.info("Fetching data from the data warehouse")
     # Fetch all data from the data warehouse
-    result = fetch_all_data()
+    result = fetch_all_data(batch_id)
     # Flatten the list of documents
     document = [doc for query_result in result.values() for doc in query_result]
     # Add the documents to the list
@@ -26,15 +27,15 @@ def query_data_warehouse() -> Annotated[list, "raw documents"]:
     return documents
 
 
-def fetch_all_data() -> dict[str, list[NoSQLBaseDocument]]:
+def fetch_all_data(batch_id: str) -> dict[str, list[NoSQLBaseDocument]]:
 
     with ThreadPoolExecutor() as executor:
 
         future_to_query = {
-            executor.submit(__fetch_articles): "articles",
-            executor.submit(__fetch_youtube_videos): "youtube_videos",
-            executor.submit(__fetch_repositories): "repositories",
-            executor.submit(__fetch_pdfs): "pdfs",
+            executor.submit(__fetch_articles, batch_id): "articles",
+            executor.submit(__fetch_youtube_videos, batch_id): "youtube_videos",
+            executor.submit(__fetch_repositories, batch_id): "repositories",
+            executor.submit(__fetch_pdfs, batch_id): "pdfs",
         }
 
         results = {}
@@ -50,22 +51,23 @@ def fetch_all_data() -> dict[str, list[NoSQLBaseDocument]]:
     return results
 
 
-def __fetch_articles() -> list[NoSQLBaseDocument]:
-    return ArticleDocument.bulk_find()
+def __fetch_articles(batch_id: str) -> list[NoSQLBaseDocument]:
+    return ArticleDocument.bulk_find(batch_id=batch_id)
 
 
-def __fetch_youtube_videos() -> list[NoSQLBaseDocument]:
-    return YoutubeDocument.bulk_find()
+def __fetch_youtube_videos(batch_id: str) -> list[NoSQLBaseDocument]:
+    return YoutubeDocument.bulk_find(batch_id=batch_id)
 
 
-def __fetch_repositories() -> list[NoSQLBaseDocument]:
-    return RepositoryDocument.bulk_find()
+def __fetch_repositories(batch_id: str) -> list[NoSQLBaseDocument]:
+    return RepositoryDocument.bulk_find(batch_id=batch_id)
 
 
-def __fetch_pdfs() -> list[NoSQLBaseDocument]:
-    return PDFDocument.bulk_find()
+def __fetch_pdfs(batch_id: str) -> list[NoSQLBaseDocument]:
+    return PDFDocument.bulk_find(batch_id=batch_id)
 
 
 if __name__ == "__main__":
-
-    print(query_data_warehouse())
+    batch_id = "batch_001"
+    docs = query_data_warehouse(batch_id)
+    print(docs[1].batch_id)
