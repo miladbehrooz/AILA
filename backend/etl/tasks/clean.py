@@ -22,5 +22,5 @@ if __name__ == "__main__":
     print(f"Cleaned {len(cleaned_documents)} documents.")
     for doc in cleaned_documents:
         print(
-            doc.content[:100]
+            doc.Config.name, doc.content[:100], "\n"
         )  # Print the first 100 characters of each cleaned document
