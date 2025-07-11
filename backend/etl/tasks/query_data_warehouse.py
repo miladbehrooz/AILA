@@ -1,9 +1,8 @@
 from typing import Annotated
 from loguru import logger
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from airflow.decorators import task
 
-from mongoengine.base import document
-from yt_dlp.utils import str_to_int
 from backend.etl.domain.base.nosql import NoSQLBaseDocument
 from backend.etl.domain.documents import (
     ArticleDocument,
@@ -13,6 +12,7 @@ from backend.etl.domain.documents import (
 )
 
 
+@task
 def query_data_warehouse(batch_id: str) -> Annotated[list, "raw documents"]:
 
     documents = []

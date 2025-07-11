@@ -13,12 +13,12 @@ class Settings(BaseSettings):
 
     # MongoDB database
     MONGO_DB_NAME: str = "laia"
-    MONGO_DB_HOST: str | None = "localhost:27017"
+    MONGO_DB_HOST: str | None = "mongo:27017"
     MONGO_DB_USERNAME: str | None = "laia"
     MONGO_DB_PASSWORD: str | None = "laia"
 
     # Qdrant database
-    QDRANT_DATABASE_HOST: str = "localhost"
+    QDRANT_DATABASE_HOST: str = "qdrant"
     QDRANT_DATABASE_PORT: int = "6333"
 
     # OpenAI API

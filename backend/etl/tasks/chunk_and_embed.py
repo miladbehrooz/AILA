@@ -1,4 +1,6 @@
 from typing import Annotated
+from airflow.decorators import task
+
 from backend.etl.domain import embedded_chunks
 from backend.etl.preprocessing.dispatchers import (
     ChunkingDispatcher,
@@ -7,11 +9,12 @@ from backend.etl.preprocessing.dispatchers import (
 from backend.utils.misc import batch
 
 
+@task
 def chunk_and_embed_documents(
     documents: Annotated[list, "cleaned_documents"],
 ) -> Annotated[list, "embedded_documents"]:
     embedded_chunks = []
-    for document in cleaned_documents:
+    for document in documents:
         chunks = ChunkingDispatcher.dispatch(document)
 
         for batched_chunks in batch(chunks, 10):

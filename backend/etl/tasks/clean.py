@@ -1,7 +1,9 @@
 from typing import Annotated
 from backend.etl.preprocessing.dispatchers import CleaningDispatcher
+from airflow.decorators import task
 
 
+@task
 def clean_documents(
     documents: Annotated[list, "raw_documents"],
 ) -> Annotated[list, "cleaned_documents"]:
