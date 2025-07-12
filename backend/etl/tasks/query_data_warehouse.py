@@ -1,5 +1,7 @@
 from typing import Annotated
+
 from loguru import logger
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from airflow.decorators import task
 
@@ -13,18 +15,23 @@ from backend.etl.domain.documents import (
 
 
 @task
-def query_data_warehouse(batch_id: str) -> Annotated[list, "raw documents"]:
+def query_data_warehouse(
+    batch_id: str, is_extracted: bool
+) -> Annotated[list, "raw documents"]:
+    if is_extracted:
 
-    documents = []
-    logger.info("Fetching data from the data warehouse")
-    # Fetch all data from the data warehouse
-    result = fetch_all_data(batch_id)
-    # Flatten the list of documents
-    document = [doc for query_result in result.values() for doc in query_result]
-    # Add the documents to the list
-    documents.extend(document)
+        documents = []
+        logger.info("Fetching data from the data warehouse")
+        # Fetch all data from the data warehouse
+        result = fetch_all_data(batch_id)
+        # Flatten the list of documents
+        document = [doc for query_result in result.values() for doc in query_result]
+        # Add the documents to the list
+        documents.extend(document)
 
-    return documents
+        return documents
+
+    return []
 
 
 def fetch_all_data(batch_id: str) -> dict[str, list[NoSQLBaseDocument]]:
@@ -70,4 +77,4 @@ def __fetch_pdfs(batch_id: str) -> list[NoSQLBaseDocument]:
 if __name__ == "__main__":
     batch_id = "batch_001"
     docs = query_data_warehouse(batch_id)
-    print(docs[1].batch_id)
+    print(docs)
