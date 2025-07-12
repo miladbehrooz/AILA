@@ -7,30 +7,37 @@ from backend.etl.extractors.dispatcher import ExtractorDispatcher
 
 
 @task
-def extract_sources(sources: list[str]) -> Annotated[list[str], "crawled_links"]:
+def extract_sources(sources: list[str], batch_id: str) -> bool:
     dispatcher = (
         ExtractorDispatcher.build().register_pdf().register_github().register_youtube()
     )
 
     logger.info(f"Starting to extract {len(sources)} source(s).")
+    try:
+        successfull_extracts = 0
+        for source in tqdm(sources):
+            successfull_extract = _extract_source(dispatcher, source, batch_id)
+            successfull_extracts += successfull_extract
 
-    successfull_extracts = 0
-    for source in tqdm(sources):
-        successfull_extract = _extract_source(dispatcher, source)
-        successfull_extracts += successfull_extract
+        logger.info(
+            f"Successfully extracted {successfull_extracts} / {len(sources)} sources."
+        )
 
-    logger.info(
-        f"Successfully extracted {successfull_extracts} / {len(sources)} sources."
-    )
+        return True
 
-    return sources
+    except Exception as e:
+        logger.error(f"An error occurred during extraction: {e!s}")
+
+        return False
 
 
-def _extract_source(dispatcher: ExtractorDispatcher, source: str) -> bool:
+def _extract_source(
+    dispatcher: ExtractorDispatcher, source: str, batch_id: str
+) -> bool:
     extractor = dispatcher.get_extractor(source)
 
     try:
-        extractor.extract(source)
+        extractor.extract(source, batch_id=batch_id)
 
         return True
     except Exception as e:
