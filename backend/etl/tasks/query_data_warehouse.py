@@ -16,9 +16,9 @@ from backend.etl.domain.documents import (
 
 @task
 def query_data_warehouse(
-    batch_id: str, is_extracted: bool
+    batch_id: str, new_extraction: bool
 ) -> Annotated[list, "raw documents"]:
-    if not is_extracted:
+    if not new_extraction:
         logger.info("No new data extracted. Skipping warehouse query.")
         return []
 
@@ -30,6 +30,7 @@ def query_data_warehouse(
     document = [doc for query_result in result.values() for doc in query_result]
     # Add the documents to the list
     documents.extend(document)
+    logger.info(f"Fetched {len(documents)} documents from the data warehouse.")
 
     return documents
 
