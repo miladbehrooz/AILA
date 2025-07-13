@@ -18,20 +18,20 @@ from backend.etl.domain.documents import (
 def query_data_warehouse(
     batch_id: str, is_extracted: bool
 ) -> Annotated[list, "raw documents"]:
-    if is_extracted:
+    if not is_extracted:
+        logger.info("No new data extracted. Skipping warehouse query.")
+        return []
 
-        documents = []
-        logger.info("Fetching data from the data warehouse")
-        # Fetch all data from the data warehouse
-        result = fetch_all_data(batch_id)
-        # Flatten the list of documents
-        document = [doc for query_result in result.values() for doc in query_result]
-        # Add the documents to the list
-        documents.extend(document)
+    documents = []
+    logger.info("Fetching data from the data warehouse")
+    # Fetch all data from the data warehouse
+    result = fetch_all_data(batch_id)
+    # Flatten the list of documents
+    document = [doc for query_result in result.values() for doc in query_result]
+    # Add the documents to the list
+    documents.extend(document)
 
-        return documents
-
-    return []
+    return documents
 
 
 def fetch_all_data(batch_id: str) -> dict[str, list[NoSQLBaseDocument]]:

@@ -8,12 +8,12 @@ from backend.etl.domain.documents import YoutubeDocument
 class YoutubeVideoExtractor(URLExtractor):
     model = YoutubeDocument
 
-    def extract(self, link: str, **kwargs) -> None:
+    def extract(self, link: str, **kwargs) -> bool:
         old_model = self.model.find(link=link)
         if old_model is not None:
             logger.info(f"Youtube video already exists in the database: {link}")
 
-            return
+            return False
 
         logger.info(f"Starting scrapping Youtube video: {link}")
 
@@ -22,7 +22,7 @@ class YoutubeVideoExtractor(URLExtractor):
             transcript, metadata = self.fetch_youtube_transcript(link)
             if transcript is None:
                 logger.info(f"No transcript found for {link}")
-                return
+                return False
             logger.info("Video transcript loaded successfully")
 
             content = {

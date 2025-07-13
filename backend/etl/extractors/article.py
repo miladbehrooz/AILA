@@ -15,12 +15,12 @@ from .base import URLExtractor
 class ArticleExtractor(URLExtractor):
     model = ArticleDocument
 
-    def extract(self, link: str, **kwargs) -> None:
+    def extract(self, link: str, **kwargs) -> bool:
         old_model = self.model.find(link=link)
         if old_model is not None:
             logger.info(f"Article already exists in the database: {link}")
 
-            return
+            return False
 
         logger.info(f"Starting scrapping article: {link}")
 
@@ -47,6 +47,7 @@ class ArticleExtractor(URLExtractor):
         instance.save()
 
         logger.info(f"Finished scrapping article: {link}")
+        return True
 
 
 if __name__ == "__main__":

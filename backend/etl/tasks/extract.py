@@ -14,20 +14,21 @@ def extract_sources(sources: list[str], batch_id: str) -> bool:
 
     logger.info(f"Starting to extract {len(sources)} source(s).")
     try:
-        successfull_extracts = 0
-        for source in tqdm(sources):
-            successfull_extract = _extract_source(dispatcher, source, batch_id)
-            successfull_extracts += successfull_extract
+        successful_extracts = 0
+        for source in sources:
+            success = _extract_source(dispatcher, source, batch_id)
+            if success:
+                successful_extracts += 1
 
         logger.info(
-            f"Successfully extracted {successfull_extracts} / {len(sources)} sources."
+            f"Successfully extracted {successful_extracts} / {len(sources)} sources."
         )
 
-        return True
+        # return True only if at least one new extraction happened
+        return successful_extracts > 0
 
     except Exception as e:
         logger.error(f"An error occurred during extraction: {e!s}")
-
         return False
 
 
@@ -37,9 +38,9 @@ def _extract_source(
     extractor = dispatcher.get_extractor(source)
 
     try:
-        extractor.extract(source, batch_id=batch_id)
+        success = extractor.extract(source, batch_id=batch_id)
 
-        return True
+        return success
     except Exception as e:
         logger.error(f"An error occurred while extracting: {e!s}")
 
