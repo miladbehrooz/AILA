@@ -12,7 +12,7 @@ class BaseDocument(NoSQLBaseDocument):
 
 
 class ArticleDocument(BaseDocument):
-    link = StringField()
+    link = StringField(required=True, unique=True)
     platform = StringField()
     meta = {"collection": "articles"}
 
@@ -21,7 +21,7 @@ class ArticleDocument(BaseDocument):
 
 
 class YoutubeDocument(BaseDocument):
-    link = StringField()
+    link = StringField(required=True, unique=True)
     platform = StringField()
     meta = {"collection": "youtube_videos"}
 
@@ -30,7 +30,7 @@ class YoutubeDocument(BaseDocument):
 
 
 class RepositoryDocument(BaseDocument):
-    link = StringField()
+    link = StringField(required=True, unique=True)
     name = StringField()
     platform = StringField()
     meta = {"collection": "repositories"}
@@ -40,7 +40,7 @@ class RepositoryDocument(BaseDocument):
 
 
 class PDFDocument(BaseDocument):
-    path = StringField()
+    path = StringField(required=True, unique=True)
     name = StringField()
     meta = {"collection": "pdfs"}
 
