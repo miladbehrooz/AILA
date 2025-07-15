@@ -1,5 +1,6 @@
 from datetime import datetime
 from airflow.decorators import dag, task
+from airflow.operators.empty import EmptyOperator
 from backend.etl.tasks.extract import extract_sources
 from backend.etl.tasks.query_data_warehouse import query_data_warehouse
 from backend.etl.tasks.clean import clean_documents
@@ -15,7 +16,7 @@ from backend.utils import logger
     catchup=False,
     tags=["etl"],
 )
-def etl_pipeline(sources: list, batch_id: str = "batch_003"):
+def etl_pipeline(sources: list, batch_id: str):
     @task.short_circuit
     def check_new_extraction(is_extracted: bool) -> bool:
         if not is_extracted:
@@ -31,13 +32,13 @@ def etl_pipeline(sources: list, batch_id: str = "batch_003"):
 
 
 sources = [
-    # "https://weaviate.io/blog/advanced-rag",
+    "https://weaviate.io/blog/advanced-rag",
     "https://www.pinecone.io/learn/vector-database/",
-    "https://python.langchain.com/docs/integrations/vectorstores/qdrant/",
-    "https://en.wikipedia.org/wiki/Apache_Airflow",
-    "https://datascientest.com/en/apache-airflow-what-is-it",
+    # "https://python.langchain.com/docs/integrations/vectorstores/qdrant/",
+    # "https://en.wikipedia.org/wiki/Apache_Airflow",
+    # "https://datascientest.com/en/apache-airflow-what-is-it",
     # "https://www.youtube.com/watch?v=T-D1OfcDW1M&t=5s",
     # "backend/data/book.pdf",
     # "https://github.com/PacktPublishing/LLM-Engineers-Handbook.git",
 ]
-etl_pipeline_dag = etl_pipeline(sources=sources, batch_id="batch_003")
+etl_pipeline_dag = etl_pipeline(sources=sources, batch_id="batch_001")
