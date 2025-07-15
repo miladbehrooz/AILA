@@ -17,12 +17,12 @@ class GithubExtractor(URLExtractor):
         super().__init__()
         self._ignore = ignore
 
-    def extract(self, link: str, **kwargs) -> None:
+    def extract(self, link: str, **kwargs) -> bool:
         old_model = self.model.find(link=link)
         if old_model is not None:
             logger.info(f"Github repository already exists in the database: {link}")
 
-            return
+            return False
 
         logger.info(f"Starting scrapping Github repository: {link}")
 
@@ -49,8 +49,14 @@ class GithubExtractor(URLExtractor):
                     with open(os.path.join(root, file), "r", errors="ignore") as f:
                         tree[file_path] = f.read().replace(" ", "")
 
+            batch_id = kwargs.get("batch_id", "None")
+
             instance = self.model(
-                content=tree, name=repo_name, link=link, platform="github"
+                content=tree,
+                name=repo_name,
+                link=link,
+                platform="github",
+                batch_id=batch_id,
             )
             instance.save()
 
@@ -60,3 +66,4 @@ class GithubExtractor(URLExtractor):
             shutil.rmtree(local_temp)
 
         logger.info(f"Finished scrapping GitHub repository: {link}")
+        return True

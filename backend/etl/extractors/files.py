@@ -8,12 +8,12 @@ class PDFFileExtractor(FileExtractor):
     model = PDFDocument
 
     # TODO: Implement the extract method using Langchain docling
-    def extract(self, path: str, **kwargs) -> None:
+    def extract(self, path: str, **kwargs) -> bool:
         old_model = self.model.find(path=path)
         if old_model is not None:
             logger.info(f"PDF file already exists in the database: {path}")
 
-            return
+            return False
         logger.info(f"Starting extracting content from PDF file: {path}")
 
         file_name = path.split("/")[-1].split(".")[0]
@@ -24,15 +24,15 @@ class PDFFileExtractor(FileExtractor):
         content = content.document.export_to_markdown()
 
         content = {"Content": content}
+        batch_id = kwargs.get("batch_id", "None")
 
         instance = self.model(
-            path=path,
-            content=content,
-            name=file_name,
+            path=path, content=content, name=file_name, batch_id=batch_id
         )
         instance.save()
 
         logger.info(f"Finished extracting content from PDF file: {path}")
+        return True
 
 
 class WordFileExtractor(FileExtractor):

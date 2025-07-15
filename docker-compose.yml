@@ -50,7 +50,9 @@ services:
     
 
   airflow:
-    image: apache/airflow:2.9.0-python3.11
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: airflow_webserver
     depends_on:
       - postgres
@@ -60,18 +62,24 @@ services:
       AIRFLOW__WEBSERVER__RBAC: "true"
       AIRFLOW__WEBSERVER__SECRET_KEY: "temporary_secret_key"
       AIRFLOW__CORE__FERNET_KEY: "temporary_fernet_key"
+      AIRFLOW__CORE__ENABLE_XCOM_PICKLING: True
       _AIRFLOW_WWW_USER_USERNAME: airflow
       _AIRFLOW_WWW_USER_PASSWORD: airflow
+      PYTHONPATH: /opt/airflow
     ports:
       - "8080:8080"
     volumes:
       - ./backend/etl/dags:/opt/airflow/dags
+      - ./backend:/opt/airflow/backend
       - ./logs:/opt/airflow/logs
+      - ./backend/logs/:/app/logs
       - ./plugins:/opt/airflow/plugins
     command: bash -c "airflow db migrate && airflow users create --username airflow --firstname Airflow --lastname Admin --role Admin --email admin@example.com --password airflow && airflow scheduler & airflow webserver"
     networks:
       - local
     restart: always
+
+
     
 
 volumes:
@@ -83,4 +91,3 @@ volumes:
 networks:
   local:
     driver: bridge
-

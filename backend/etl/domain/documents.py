@@ -7,21 +7,21 @@ from backend.etl.domain.types import DataCategory
 
 class BaseDocument(NoSQLBaseDocument):
     content = DictField()
+    batch_id = StringField()
     meta = {"abstract": True}
 
 
 class ArticleDocument(BaseDocument):
-    link = StringField()
+    link = StringField(required=True, unique=True)
     platform = StringField()
     meta = {"collection": "articles"}
-
 
     class Settings:
         name = DataCategory.ARTICLES
 
 
 class YoutubeDocument(BaseDocument):
-    link = StringField()
+    link = StringField(required=True, unique=True)
     platform = StringField()
     meta = {"collection": "youtube_videos"}
 
@@ -30,21 +30,19 @@ class YoutubeDocument(BaseDocument):
 
 
 class RepositoryDocument(BaseDocument):
-    link = StringField()
+    link = StringField(required=True, unique=True)
     name = StringField()
     platform = StringField()
     meta = {"collection": "repositories"}
-
 
     class Settings:
         name = DataCategory.REPOSITORIES
 
 
 class PDFDocument(BaseDocument):
-    path = StringField()
+    path = StringField(required=True, unique=True)
     name = StringField()
     meta = {"collection": "pdfs"}
-
 
     class Settings:
         name = DataCategory.PDFS
