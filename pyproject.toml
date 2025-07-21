@@ -21,6 +21,9 @@ langchain-openai = "^0.3.21"
 langchain-huggingface = "^0.2.0"
 langchain-cohere = "^0.4.4"
 yt-dlp = "^2025.6.25"
+fastapi = "^0.116.1"
+html2text = "^2025.4.15"
+
 
 
 [build-system]

@@ -28,5 +28,10 @@ class Settings(BaseSettings):
     TEXT_EMBEDDING_PROVIDER: str = "huggingface"
     TEXT_EMBEDDING_MODEL_NAME: str = "all-MiniLM-L6-v2"
 
+    # Airflow
+    AIRFLOW_API_URL: str = "http://localhost:8080/api/v1"
+    AIRFLOW_USER: str = "airflow"
+    AIRFLOW_PASS: str = "airflow"
+
 
 settings = Settings()
