@@ -8,6 +8,8 @@ from backend.etl.tasks.chunk_and_embed import chunk_and_embed_documents
 from backend.etl.tasks.load import load_to_vector_db
 from backend.utils import logger
 
+# TODO: use the conf parameter to pass the sources and batch_id dynamically
+
 
 @dag(
     dag_id="etl_dag",
@@ -16,7 +18,20 @@ from backend.utils import logger
     catchup=False,
     tags=["etl"],
 )
-def etl_pipeline(sources: list, batch_id: str):
+def etl_pipeline():
+
+    @task
+    def get_conf(**kwargs) -> dict:
+        conf = kwargs["dag_run"].conf
+        sources = conf.get("sources", [])
+        batch_id = conf.get("batch_id")
+        logger.info(f"Fetched conf: sources={sources}, batch_id={batch_id}")
+        return {"sources": sources, "batch_id": batch_id}
+
+    conf = get_conf()
+    sources = conf["sources"]
+    batch_id = conf["batch_id"]
+
     @task.short_circuit
     def check_new_extraction(is_extracted: bool) -> bool:
         if not is_extracted:
@@ -31,14 +46,4 @@ def etl_pipeline(sources: list, batch_id: str):
     load_to_vector_db(embedded_chunks)
 
 
-sources = [
-    "https://weaviate.io/blog/advanced-rag",
-    "https://www.pinecone.io/learn/vector-database/",
-    # "https://python.langchain.com/docs/integrations/vectorstores/qdrant/",
-    # "https://en.wikipedia.org/wiki/Apache_Airflow",
-    # "https://datascientest.com/en/apache-airflow-what-is-it",
-    # "https://www.youtube.com/watch?v=T-D1OfcDW1M&t=5s",
-    # "backend/data/book.pdf",
-    # "https://github.com/PacktPublishing/LLM-Engineers-Handbook.git",
-]
-etl_pipeline_dag = etl_pipeline(sources=sources, batch_id="batch_001")
+etl_pipeline_dag = etl_pipeline()
