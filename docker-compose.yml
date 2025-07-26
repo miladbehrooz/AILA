@@ -63,6 +63,7 @@ services:
       AIRFLOW__WEBSERVER__SECRET_KEY: "temporary_secret_key"
       AIRFLOW__CORE__FERNET_KEY: "temporary_fernet_key"
       AIRFLOW__CORE__ENABLE_XCOM_PICKLING: True
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
       _AIRFLOW_WWW_USER_USERNAME: airflow
       _AIRFLOW_WWW_USER_PASSWORD: airflow
       PYTHONPATH: /opt/airflow
