@@ -7,25 +7,25 @@ from backend.etl.extractors.dispatcher import ExtractorDispatcher
 
 
 @task
-def extract_sources(sources: list[str], batch_id: str) -> bool:
+def extract_sources(sources: list[str], batch_id: str) -> list:
     dispatcher = (
         ExtractorDispatcher.build().register_pdf().register_github().register_youtube()
     )
 
     logger.info(f"Starting to extract {len(sources)} source(s).")
     try:
-        successful_extracts = 0
+
+        new_sources = []
         for source in sources:
             success = _extract_source(dispatcher, source, batch_id)
             if success:
-                successful_extracts += 1
+                new_sources.append(source)
 
         logger.info(
-            f"Successfully extracted {successful_extracts} / {len(sources)} sources."
+            f"Successfully extracted {len(new_sources)} / {len(sources)} sources."
         )
 
-        # return True only if at least one new extraction happened
-        return successful_extracts > 0
+        return new_sources
 
     except Exception as e:
         logger.error(f"An error occurred during extraction: {e!s}")

@@ -13,9 +13,8 @@ class TriggerDAGResponse(BaseModel):
     state: str
 
 
-class DAGStatusResponse(BaseModel):
+class ExtractedSourcesResponse(BaseModel):
     dag_id: str
-    dag_run_id: str
-    state: str
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
+    execution_date: str
+    timestamp: str
+    new_sources: list[str]

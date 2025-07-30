@@ -1,4 +1,5 @@
 import requests
+import ast
 from requests.auth import HTTPBasicAuth
 from fastapi import HTTPException
 from backend.settings import settings
@@ -30,8 +31,8 @@ def trigger_dag(dag_id: str, conf: dict) -> dict:
         )
 
 
-def get_dag_status(dag_id: str, dag_run_id: str) -> dict:
-    url = f"{settings.AIRFLOW_API_URL}/dags/{dag_id}/dagRuns/{dag_run_id}"
+def get_extracted_sources_status(dag_id: str, dag_run_id: str) -> dict:
+    url = f"{settings.AIRFLOW_API_URL}/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/extract_sources/xcomEntries/return_value"
 
     try:
         response = requests.get(
@@ -40,12 +41,16 @@ def get_dag_status(dag_id: str, dag_run_id: str) -> dict:
         response.raise_for_status()
 
         dag_run = response.json()
+        raw_value = dag_run.get("value", "[]")
+        try:
+            parsed_value = ast.literal_eval(raw_value)
+        except (SyntaxError, ValueError):
+            parsed_value = []
         return {
             "dag_id": dag_run["dag_id"],
-            "dag_run_id": dag_run["dag_run_id"],
-            "state": dag_run["state"],
-            "start_date": dag_run.get("start_date"),
-            "end_date": dag_run.get("end_date"),
+            "execution_date": dag_run["execution_date"],
+            "timestamp": dag_run["timestamp"],
+            "new_sources": parsed_value,
         }
 
     except requests.HTTPError as e:
