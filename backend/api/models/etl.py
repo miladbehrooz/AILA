@@ -18,3 +18,5 @@ class ExtractedSourcesResponse(BaseModel):
     execution_date: str
     timestamp: str
     new_sources: list[str]
+    duplicate_sources: list[str] = []
+    failed_sources: list[str] = []

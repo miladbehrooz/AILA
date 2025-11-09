@@ -5,7 +5,7 @@ import tempfile
 
 from loguru import logger
 
-from .base import URLExtractor
+from .base import URLExtractor, ExtractionResult
 
 from backend.etl.domain.documents import RepositoryDocument
 
@@ -22,7 +22,7 @@ class GithubExtractor(URLExtractor):
         if old_model is not None:
             logger.info(f"Github repository already exists in the database: {link}")
 
-            return False
+            return ExtractionResult.DUPLICATE
 
         logger.info(f"Starting scrapping Github repository: {link}")
 
@@ -66,4 +66,4 @@ class GithubExtractor(URLExtractor):
             shutil.rmtree(local_temp)
 
         logger.info(f"Finished scrapping GitHub repository: {link}")
-        return True
+        return ExtractionResult.INSERTED

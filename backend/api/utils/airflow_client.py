@@ -43,16 +43,25 @@ def get_extracted_sources_status(dag_id: str, dag_run_id: str) -> dict:
         response.raise_for_status()
 
         data = response.json()
-        raw_value = data.get("value", "[]")
+        raw_value = data.get("value", "{}")
         try:
             parsed_value = ast.literal_eval(raw_value)
         except (SyntaxError, ValueError):
-            parsed_value = []
+            parsed_value = {}
+
+        if isinstance(parsed_value, list):
+            parsed_value = {"new_sources": parsed_value}
+
+        extraction_summary = {
+            "new_sources": parsed_value.get("new_sources", []),
+            "duplicate_sources": parsed_value.get("duplicate_sources", []),
+            "failed_sources": parsed_value.get("failed_sources", []),
+        }
         return {
             "dag_id": data["dag_id"],
             "execution_date": data["execution_date"],
             "timestamp": data["timestamp"],
-            "new_sources": parsed_value,
+            **extraction_summary,
         }
 
     except requests.HTTPError as e:

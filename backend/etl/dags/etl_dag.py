@@ -39,7 +39,8 @@ def etl_pipeline():
         return bool(sources)
 
     # TODO: implment return the list of the new_sources in the extract souurce task in api layer to make warning about duplicates
-    new_sources = extract_sources(sources=sources, batch_id=batch_id)
+    extraction_summary = extract_sources(sources=sources, batch_id=batch_id)
+    new_sources = extraction_summary["new_sources"]
     new_extraction = check_new_extraction(new_sources)
     documents = query_data_warehouse(batch_id, new_extraction=new_extraction)
     cleaned_documents = clean_documents(documents)

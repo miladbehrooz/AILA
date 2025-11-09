@@ -1,6 +1,6 @@
 from loguru import logger
 from docling.document_converter import DocumentConverter
-from .base import FileExtractor
+from .base import FileExtractor, ExtractionResult
 from backend.etl.domain.documents import PDFDocument
 
 
@@ -13,7 +13,7 @@ class PDFFileExtractor(FileExtractor):
         if old_model is not None:
             logger.info(f"PDF file already exists in the database: {path}")
 
-            return False
+            return ExtractionResult.DUPLICATE
         logger.info(f"Starting extracting content from PDF file: {path}")
 
         file_name = path.split("/")[-1].split(".")[0]
@@ -32,7 +32,7 @@ class PDFFileExtractor(FileExtractor):
         instance.save()
 
         logger.info(f"Finished extracting content from PDF file: {path}")
-        return True
+        return ExtractionResult.INSERTED
 
 
 class WordFileExtractor(FileExtractor):

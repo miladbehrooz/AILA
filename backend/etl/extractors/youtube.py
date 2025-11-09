@@ -1,7 +1,7 @@
 import requests
 import yt_dlp
 from loguru import logger
-from .base import URLExtractor
+from .base import URLExtractor, ExtractionResult
 from backend.etl.domain.documents import YoutubeDocument
 
 
@@ -13,7 +13,7 @@ class YoutubeVideoExtractor(URLExtractor):
         if old_model is not None:
             logger.info(f"Youtube video already exists in the database: {link}")
 
-            return False
+            return ExtractionResult.DUPLICATE
 
         logger.info(f"Starting scrapping Youtube video: {link}")
 
@@ -22,7 +22,7 @@ class YoutubeVideoExtractor(URLExtractor):
             transcript, metadata = self.fetch_youtube_transcript(link)
             if transcript is None:
                 logger.info(f"No transcript found for {link}")
-                return False
+                return ExtractionResult.FAILED
             logger.info("Video transcript loaded successfully")
 
             content = {
@@ -42,6 +42,7 @@ class YoutubeVideoExtractor(URLExtractor):
             )
             instance.save()
             logger.info(f"Finished scrapping Youtube video: {link}")
+            return ExtractionResult.INSERTED
         except Exception as e:
             logger.error(f"Error while extracting Youtube video {link}: {e}")
             raise
