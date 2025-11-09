@@ -9,7 +9,7 @@ from loguru import logger
 
 
 from backend.etl.domain.documents import ArticleDocument
-from .base import URLExtractor
+from .base import URLExtractor, ExtractionResult
 
 
 class ArticleExtractor(URLExtractor):
@@ -20,7 +20,7 @@ class ArticleExtractor(URLExtractor):
         if old_model is not None:
             logger.info(f"Article already exists in the database: {link}")
 
-            return False
+            return ExtractionResult.DUPLICATE
 
         logger.info(f"Starting scrapping article: {link}")
 
@@ -47,7 +47,7 @@ class ArticleExtractor(URLExtractor):
         instance.save()
 
         logger.info(f"Finished scrapping article: {link}")
-        return True
+        return ExtractionResult.INSERTED
 
 
 if __name__ == "__main__":

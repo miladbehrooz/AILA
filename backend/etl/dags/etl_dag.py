@@ -33,13 +33,15 @@ def etl_pipeline():
     batch_id = conf["batch_id"]
 
     @task.short_circuit
-    def check_new_extraction(is_extracted: bool) -> bool:
-        if not is_extracted:
+    def check_new_extraction(sources: list) -> bool:
+        if sources:
             logger.info("No new data extracted. Skipping the rest of the pipeline.")
-        return is_extracted
+        return bool(sources)
 
-    is_extracted = extract_sources(sources=sources, batch_id=batch_id)
-    new_extraction = check_new_extraction(is_extracted)
+    # TODO: implment return the list of the new_sources in the extract souurce task in api layer to make warning about duplicates
+    extraction_summary = extract_sources(sources=sources, batch_id=batch_id)
+    new_sources = extraction_summary["new_sources"]
+    new_extraction = check_new_extraction(new_sources)
     documents = query_data_warehouse(batch_id, new_extraction=new_extraction)
     cleaned_documents = clean_documents(documents)
     embedded_chunks = chunk_and_embed_documents(cleaned_documents)
