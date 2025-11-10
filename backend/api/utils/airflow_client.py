@@ -92,3 +92,88 @@ def get_dag_status_stream(dag_id: str, dag_run_id: str, poll_interval: int = 5):
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
             break
+
+
+def list_dag_runs(dag_id: str, limit: int = 25, offset: int = 0) -> dict:
+    url = f"{settings.AIRFLOW_API_URL}/dags/{dag_id}/dagRuns"
+    params = {"limit": limit, "offset": offset, "order_by": "-execution_date"}
+
+    try:
+        response = requests.get(
+            url,
+            params=params,
+            auth=HTTPBasicAuth(settings.AIRFLOW_USER, settings.AIRFLOW_PASS),
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.HTTPError:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=f"Failed to list DAG runs: {response.text}",
+        )
+
+
+def get_dag_run(dag_id: str, dag_run_id: str) -> dict:
+    url = f"{settings.AIRFLOW_API_URL}/dags/{dag_id}/dagRuns/{dag_run_id}"
+
+    try:
+        response = requests.get(
+            url, auth=HTTPBasicAuth(settings.AIRFLOW_USER, settings.AIRFLOW_PASS)
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.HTTPError:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=f"Failed to fetch DAG run: {response.text}",
+        )
+
+
+def get_task_log(
+    dag_id: str, dag_run_id: str, task_id: str, task_try_number: int = 1
+) -> dict:
+    url = (
+        f"{settings.AIRFLOW_API_URL}/dags/{dag_id}/dagRuns/{dag_run_id}/"
+        f"taskInstances/{task_id}/logs/{task_try_number}"
+    )
+
+    response = requests.get(
+        url,
+        params={"full_content": "true"},
+        auth=HTTPBasicAuth(settings.AIRFLOW_USER, settings.AIRFLOW_PASS),
+    )
+    response.raise_for_status()
+    content = response.text
+    try:
+        data = response.json()
+        content = data.get("content")
+        continuation = data.get("continuation_token")
+    except ValueError:
+        continuation = None
+        return {
+            "dag_id": dag_id,
+            "dag_run_id": dag_run_id,
+            "task_id": task_id,
+            "content": content,
+            "continuation_token": continuation,
+        }
+
+
+def cancel_dag_run(dag_id: str, dag_run_id: str) -> dict:
+    url = f"{settings.AIRFLOW_API_URL}/dags/{dag_id}/dagRuns/{dag_run_id}"
+
+    try:
+        response = requests.delete(
+            url, auth=HTTPBasicAuth(settings.AIRFLOW_USER, settings.AIRFLOW_PASS)
+        )
+        response.raise_for_status()
+        return {
+            "message": "DAG run cancellation requested",
+            "dag_id": dag_id,
+            "dag_run_id": dag_run_id,
+        }
+    except requests.HTTPError:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=f"Failed to cancel DAG run: {response.text}",
+        )

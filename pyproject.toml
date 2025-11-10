@@ -26,6 +26,7 @@ html2text = "^2025.4.15"
 
 
 
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

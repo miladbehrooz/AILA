@@ -1,8 +1,7 @@
 import os
 import re
 from urllib.parse import urlparse
-from loguru import logger
-
+from backend.utils import logger
 from .base import BaseExtractor, URLExtractor, FileExtractor
 from .article import ArticleExtractor
 from .youtube import YoutubeVideoExtractor

@@ -1,6 +1,5 @@
 from datetime import datetime
 from airflow.decorators import dag, task
-from airflow.operators.empty import EmptyOperator
 from backend.etl.tasks.extract import extract_sources
 from backend.etl.tasks.query_data_warehouse import query_data_warehouse
 from backend.etl.tasks.clean import clean_documents
@@ -38,7 +37,6 @@ def etl_pipeline():
             logger.info("No new data extracted. Skipping the rest of the pipeline.")
         return bool(sources)
 
-    # TODO: implment return the list of the new_sources in the extract souurce task in api layer to make warning about duplicates
     extraction_summary = extract_sources(sources=sources, batch_id=batch_id)
     new_sources = extraction_summary["new_sources"]
     new_extraction = check_new_extraction(new_sources)
