@@ -77,17 +77,21 @@ def render_app() -> None:
         field_id = field["id"]
         mode = field.get("mode", "url")
 
-        input_col, upload_col, add_col, remove_col = st.columns([6, 1.3, 1, 1])
+        input_col, upload_col, add_col, remove_col = st.columns([5.8, 0.8, 0.8, 0.8])
+        # label_col.markdown(f"**Source {idx + 1}**")
+
         if mode == "url":
             input_col.text_input(
-                f"Source {idx + 1} URL (web articles, youtube videos, github repos)",
+                "Source URL (web article / YouTube / GitHub)",
                 placeholder="https://example.com/article",
                 key=f"source_{field_id}",
+                label_visibility="collapsed",
             )
         else:
             input_col.file_uploader(
-                f"Upload File {idx + 1} (PDF files)",
+                "Upload PDF file",
                 key=f"file_{field_id}",
+                label_visibility="collapsed",
             )
 
         upload_col.button(
@@ -95,7 +99,7 @@ def render_app() -> None:
             key=f"toggle_{field_id}",
             on_click=toggle_field_mode,
             args=(field_id,),
-            use_container_width=False,
+            use_container_width=True,
         )
 
         add_col.button(
@@ -103,7 +107,7 @@ def render_app() -> None:
             key=f"add_{field_id}",
             on_click=add_source_field_at,
             args=(idx,),
-            use_container_width=False,
+            use_container_width=True,
         )
         remove_col.button(
             "➖",
@@ -111,7 +115,7 @@ def render_app() -> None:
             on_click=remove_source_field_at,
             args=(idx,),
             disabled=len(st.session_state.source_fields) == 1,
-            use_container_width=False,
+            use_container_width=True,
         )
 
     submitted = st.button("Upload", type="primary", use_container_width=True)
