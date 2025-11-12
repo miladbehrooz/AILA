@@ -145,9 +145,9 @@ def render_app() -> None:
         else:
             with st.spinner("Triggering ETL..."):
                 try:
-                    data = trigger_etl(sources)
-                    st.success("ETL pipeline triggered successfully.")
-                    st.json(data)
+                    trigger_etl(sources)
+                    st.success("Source upload started successfully!")
+
                 except requests.HTTPError as exc:
                     detail = exc.response.text if exc.response is not None else str(exc)
                     st.error(f"Request failed: {detail}")
