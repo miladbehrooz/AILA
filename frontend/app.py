@@ -214,14 +214,13 @@ def render_app() -> None:
             st.error(errors[0])
         else:
             trigger_response: dict[str, Any] | None = None
-            with st.spinner("Triggering ETL..."):
-                try:
-                    trigger_response = trigger_etl(sources)
-                except requests.HTTPError as exc:
-                    detail = exc.response.text if exc.response is not None else str(exc)
-                    st.error(f"Request failed: {detail}")
-                except requests.RequestException as exc:
-                    st.error(f"Unable to reach backend API: {exc}")
+            try:
+                trigger_response = trigger_etl(sources)
+            except requests.HTTPError as exc:
+                detail = exc.response.text if exc.response is not None else str(exc)
+                st.error(f"Request failed: {detail}")
+            except requests.RequestException as exc:
+                st.error(f"Unable to reach backend API: {exc}")
 
             if trigger_response is None:
                 return
@@ -275,23 +274,20 @@ def render_app() -> None:
                             expanded=False,
                         )
 
-                with st.spinner("Fetching extraction summary..."):
-                    try:
-                        summary_data = fetch_extraction_summary(
-                            dag_run_id, max_attempts=20, delay_seconds=3
-                        )
-                    except requests.HTTPError as exc:
-                        detail = (
-                            exc.response.text if exc.response is not None else str(exc)
-                        )
-                        st.warning(
-                            "Unable to retrieve extraction summary "
-                            f"for DAG run {dag_run_id}: {detail}"
-                        )
-                    except requests.RequestException as exc:
-                        st.warning(
-                            f"Unable to contact backend for extraction summary: {exc}"
-                        )
+                try:
+                    summary_data = fetch_extraction_summary(
+                        dag_run_id, max_attempts=20, delay_seconds=3
+                    )
+                except requests.HTTPError as exc:
+                    detail = exc.response.text if exc.response is not None else str(exc)
+                    st.warning(
+                        "Unable to retrieve extraction summary "
+                        f"for DAG run {dag_run_id}: {detail}"
+                    )
+                except requests.RequestException as exc:
+                    st.warning(
+                        f"Unable to contact backend for extraction summary: {exc}"
+                    )
             else:
                 st.info(
                     "The backend did not return a DAG run identifier, "
@@ -314,7 +310,7 @@ def render_app() -> None:
                     )
 
             else:
-                st.info("Extraction summary is not available yet.")
+                st.info("Extraction summary is not available yet. ")
 
 
 if __name__ == "__main__":
