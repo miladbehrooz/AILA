@@ -1,7 +1,10 @@
+import json
 import os
+import time
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
+
 import requests
 import streamlit as st
 from dotenv import load_dotenv
@@ -9,6 +12,14 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 
 load_dotenv()
+
+
+def list_to_str(items: list[str]) -> str:
+    if not items:
+        return ""
+    if len(items) == 1:
+        return items[0]
+    return ", ".join(items[:-1]) + " and " + items[-1]
 
 
 def get_api_base_url() -> str:
@@ -26,6 +37,64 @@ def trigger_etl(sources: list[str]) -> dict[str, Any]:
     )
     response.raise_for_status()
     return response.json()
+
+
+def stream_etl_states(dag_run_id: str):
+    url = f"{get_api_base_url()}/etl/stream-etl-status/{dag_run_id}"
+    with requests.get(url, stream=True, timeout=60) as response:
+        response.raise_for_status()
+        for line in response.iter_lines(decode_unicode=True):
+            if not line or not line.startswith("data:"):
+                continue
+            payload = line.partition("data:")[2].strip()
+            if not payload:
+                continue
+            try:
+                data = json.loads(payload)
+            except json.JSONDecodeError:
+                continue
+            state = data.get("state")
+            if state:
+                yield state.lower()
+
+
+def wait_for_dag_completion(
+    dag_run_id: str, on_state_update: Callable[[str], None] | None = None
+) -> str | None:
+    try:
+        for state in stream_etl_states(dag_run_id):
+            if on_state_update:
+                on_state_update(state)
+            if state in {"success", "failed"}:
+                return state
+    except requests.RequestException:
+        raise
+    return None
+
+
+def fetch_extraction_summary(
+    dag_run_id: str, max_attempts: int = 10, delay_seconds: float = 3.0
+) -> dict[str, Any] | None:
+    url = f"{get_api_base_url()}/etl/extracted-sources/{dag_run_id}"
+    for attempt in range(max_attempts):
+        try:
+            response = requests.get(url, timeout=60)
+            response.raise_for_status()
+            return response.json()
+        except requests.HTTPError as exc:
+            status_code = exc.response.status_code if exc.response else None
+            if status_code == 404:
+                if attempt < max_attempts - 1:
+                    time.sleep(delay_seconds)
+                    continue
+                return None
+            raise
+        except requests.RequestException:
+            if attempt < max_attempts - 1:
+                time.sleep(delay_seconds)
+                continue
+            raise
+    return None
 
 
 def init_source_fields() -> None:
@@ -78,7 +147,6 @@ def render_app() -> None:
         mode = field.get("mode", "url")
 
         input_col, upload_col, add_col, remove_col = st.columns([5.8, 0.8, 0.8, 0.8])
-        # label_col.markdown(f"**Source {idx + 1}**")
 
         if mode == "url":
             input_col.text_input(
@@ -145,16 +213,108 @@ def render_app() -> None:
         elif errors:
             st.error(errors[0])
         else:
+            trigger_response: dict[str, Any] | None = None
             with st.spinner("Triggering ETL..."):
                 try:
-                    trigger_etl(sources)
-                    st.success("Source upload started successfully!")
-
+                    trigger_response = trigger_etl(sources)
                 except requests.HTTPError as exc:
                     detail = exc.response.text if exc.response is not None else str(exc)
                     st.error(f"Request failed: {detail}")
                 except requests.RequestException as exc:
                     st.error(f"Unable to reach backend API: {exc}")
+
+            if trigger_response is None:
+                return
+
+            dag_run_id = trigger_response.get("dag_run_id")
+            summary_data: dict[str, Any] | None = None
+
+            if dag_run_id:
+                status_box = st.status(
+                    "Awaiting source upload status updates...",
+                    state="running",
+                    expanded=False,
+                )
+
+                def _update_state(state: str) -> None:
+                    status_box.update(
+                        label="Source upload is running...",
+                        state="running",
+                        expanded=False,
+                    )
+
+                try:
+                    final_state = wait_for_dag_completion(dag_run_id, _update_state)
+                except requests.RequestException as exc:
+                    status_box.update(
+                        label=f"Unable to stream source upload status updates: {exc}",
+                        state="error",
+                        expanded=False,
+                    )
+                    final_state = None
+                else:
+                    if final_state == "success":
+                        status_box.update(
+                            label="Source upload finished successfully.",
+                            state="complete",
+                            expanded=False,
+                        )
+                    elif final_state:
+                        status_box.update(
+                            label=f"Source upload finished with state `{final_state}`.",
+                            state="error",
+                            expanded=False,
+                        )
+                    else:
+                        status_box.update(
+                            label=(
+                                "Status stream ended before a final state was reported. "
+                                "Check Airflow for the latest status."
+                            ),
+                            state="error",
+                            expanded=False,
+                        )
+
+                with st.spinner("Fetching extraction summary..."):
+                    try:
+                        summary_data = fetch_extraction_summary(
+                            dag_run_id, max_attempts=20, delay_seconds=3
+                        )
+                    except requests.HTTPError as exc:
+                        detail = (
+                            exc.response.text if exc.response is not None else str(exc)
+                        )
+                        st.warning(
+                            "Unable to retrieve extraction summary "
+                            f"for DAG run {dag_run_id}: {detail}"
+                        )
+                    except requests.RequestException as exc:
+                        st.warning(
+                            f"Unable to contact backend for extraction summary: {exc}"
+                        )
+            else:
+                st.info(
+                    "The backend did not return a DAG run identifier, "
+                    "so status monitoring and duplicate detection could not be performed."
+                )
+
+            if summary_data:
+                if summary_data.get("new_sources"):
+                    st.success(
+                        f"{list_to_str(summary_data['new_sources'])} uploaded successfully."
+                    )
+
+                if summary_data.get("duplicate_sources"):
+                    st.warning(
+                        f"{list_to_str(summary_data['duplicate_sources']) } already exist."
+                    )
+                if summary_data.get("failed_sources"):
+                    st.error(
+                        f"{list_to_str(summary_data['failed_sources'])} failed to upload."
+                    )
+
+            else:
+                st.info("Extraction summary is not available yet.")
 
 
 if __name__ == "__main__":
