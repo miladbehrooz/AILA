@@ -254,7 +254,7 @@ def render_app() -> None:
                 else:
                     if final_state == "success":
                         status_box.update(
-                            label="Source upload finished successfully.",
+                            label="Source upload finished.",
                             state="complete",
                             expanded=False,
                         )
