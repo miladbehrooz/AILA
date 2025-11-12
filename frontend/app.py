@@ -141,9 +141,7 @@ def render_app() -> None:
                     errors.append("Please select a file for all upload inputs.")
 
         if not sources:
-            st.error(
-                "Please provide at least one source before triggering the pipeline."
-            )
+            st.error("Please provide at least one source.")
         elif errors:
             st.error(errors[0])
         else:
