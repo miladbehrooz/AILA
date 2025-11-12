@@ -65,9 +65,11 @@ def persist_uploaded_file(uploaded: UploadedFile) -> str:
 
 
 def render_app() -> None:
-    st.set_page_config(page_title="LAIA ETL Trigger", layout="centered")
-    st.title("LAIA ETL Trigger")
-    st.caption("Trigger the ETL pipeline for one or more sources.")
+    st.set_page_config(page_title="Source Upload", layout="centered")
+    st.title("Source Upload")
+    st.caption(
+        "Upload Sources (web articles, youtube videos, github repos, PDF files)."
+    )
 
     init_source_fields()
 
@@ -78,13 +80,13 @@ def render_app() -> None:
         input_col, upload_col, add_col, remove_col = st.columns([6, 1.3, 1, 1])
         if mode == "url":
             input_col.text_input(
-                f"Source {idx + 1}",
+                f"Source {idx + 1} URL (web articles, youtube videos, github repos)",
                 placeholder="https://example.com/article",
                 key=f"source_{field_id}",
             )
         else:
             input_col.file_uploader(
-                f"Upload File {idx + 1}",
+                f"Upload File {idx + 1} (PDF files)",
                 key=f"file_{field_id}",
             )
 
@@ -93,7 +95,7 @@ def render_app() -> None:
             key=f"toggle_{field_id}",
             on_click=toggle_field_mode,
             args=(field_id,),
-            use_container_width=True,
+            use_container_width=False,
         )
 
         add_col.button(
@@ -101,7 +103,7 @@ def render_app() -> None:
             key=f"add_{field_id}",
             on_click=add_source_field_at,
             args=(idx,),
-            use_container_width=True,
+            use_container_width=False,
         )
         remove_col.button(
             "➖",
@@ -109,10 +111,10 @@ def render_app() -> None:
             on_click=remove_source_field_at,
             args=(idx,),
             disabled=len(st.session_state.source_fields) == 1,
-            use_container_width=True,
+            use_container_width=False,
         )
 
-    submitted = st.button("Trigger ETL", type="primary", use_container_width=True)
+    submitted = st.button("Upload", type="primary", use_container_width=True)
 
     if submitted:
         sources: list[str] = []
