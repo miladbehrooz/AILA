@@ -1,10 +1,7 @@
 from typing import Annotated
-
-from loguru import logger
-
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from airflow.decorators import task
-
+from backend.utils import logger
 from backend.etl.domain.base.nosql import NoSQLBaseDocument
 from backend.etl.domain.documents import (
     ArticleDocument,

@@ -2,12 +2,9 @@ import os
 import shutil
 import subprocess
 import tempfile
-
-from loguru import logger
-
 from .base import URLExtractor, ExtractionResult
-
 from backend.etl.domain.documents import RepositoryDocument
+from backend.utils import logger
 
 
 class GithubExtractor(URLExtractor):

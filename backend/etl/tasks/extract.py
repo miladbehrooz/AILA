@@ -1,9 +1,8 @@
 from typing import TypedDict
-from loguru import logger
-
 from airflow.decorators import task
 from backend.etl.extractors.dispatcher import ExtractorDispatcher
 from backend.etl.extractors.base import ExtractionResult
+from backend.utils import logger
 
 
 class ExtractionSummary(TypedDict):
@@ -61,9 +60,7 @@ def _extract_source(
         if isinstance(result, ExtractionResult):
             return result
 
-        return (
-            ExtractionResult.INSERTED if result else ExtractionResult.FAILED
-        )
+        return ExtractionResult.INSERTED if result else ExtractionResult.FAILED
     except Exception as e:
         logger.error(f"An error occurred while extracting: {e!s}")
 

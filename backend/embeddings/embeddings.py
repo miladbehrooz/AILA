@@ -2,10 +2,9 @@ from functools import cached_property
 from typing import Any, List, Union
 
 import numpy as np
-from loguru import logger
 from numpy.typing import NDArray
 
-
+from backend.utils import logger
 from backend.utils.singleton import SingletonMeta
 from .base import EmbeddingFactory
 from backend.settings.settings import settings

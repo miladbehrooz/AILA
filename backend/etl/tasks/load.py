@@ -1,9 +1,8 @@
 from typing import Annotated
-from loguru import logger
 from airflow.decorators import task
-
 from backend.etl.domain.base.vector import VectorBaseDocument
 from backend.utils.misc import batch
+from backend.utils import logger
 
 
 @task
