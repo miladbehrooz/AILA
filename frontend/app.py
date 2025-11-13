@@ -2,7 +2,6 @@ import json
 import os
 import time
 import uuid
-from pathlib import Path
 from typing import Any, Callable
 
 import requests
@@ -125,12 +124,24 @@ def toggle_field_mode(field_id: str) -> None:
 
 
 def persist_uploaded_file(uploaded: UploadedFile) -> str:
-    uploads_dir = Path("frontend/uploads")
-    uploads_dir.mkdir(parents=True, exist_ok=True)
-    destination = uploads_dir / f"{uuid.uuid4()}_{uploaded.name}"
-    with destination.open("wb") as fh:
-        fh.write(uploaded.getbuffer())
-    return str(destination.resolve())
+    files = {
+        "file": (
+            uploaded.name,
+            uploaded.getvalue(),
+            uploaded.type or "application/pdf",
+        )
+    }
+    response = requests.post(
+        f"{get_api_base_url()}/etl/upload-file",
+        files=files,
+        timeout=60,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    stored_path = payload.get("stored_path")
+    if not stored_path:
+        raise ValueError("Backend did not return stored_path for uploaded file.")
+    return stored_path
 
 
 def render_app() -> None:
@@ -254,7 +265,7 @@ def render_app() -> None:
                 else:
                     if final_state == "success":
                         status_box.update(
-                            label="Source upload finished.",
+                            label="Source upload finished successfully.",
                             state="complete",
                             expanded=False,
                         )
