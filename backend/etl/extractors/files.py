@@ -1,10 +1,9 @@
 from pathlib import Path
-
-from loguru import logger
 from docling.document_converter import DocumentConverter
 from .base import FileExtractor, ExtractionResult
 from backend.etl.domain.documents import PDFDocument
 from backend.settings import settings
+from backend.utils.logging import logger
 
 
 class PDFFileExtractor(FileExtractor):
