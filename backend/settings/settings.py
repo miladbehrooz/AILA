@@ -1,4 +1,9 @@
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+BACKEND_DIR = PROJECT_ROOT / "backend"
 
 
 class Settings(BaseSettings):
@@ -31,6 +36,11 @@ class Settings(BaseSettings):
     AIRFLOW_API_URL: str = "http://localhost:8080/api/v1"
     AIRFLOW_USER: str = "airflow"
     AIRFLOW_PASS: str = "airflow"
+
+    # File storage
+    PROJECT_ROOT: Path = PROJECT_ROOT
+    BACKEND_DIR: Path = BACKEND_DIR
+    UPLOADS_DIR: Path = BACKEND_DIR / "uploads"
 
 
 settings = Settings()

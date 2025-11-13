@@ -1,7 +1,10 @@
+from pathlib import Path
+
 from loguru import logger
 from docling.document_converter import DocumentConverter
 from .base import FileExtractor, ExtractionResult
 from backend.etl.domain.documents import PDFDocument
+from backend.settings import settings
 
 
 class PDFFileExtractor(FileExtractor):
@@ -9,6 +12,10 @@ class PDFFileExtractor(FileExtractor):
 
     # TODO: Implement the extract method using Langchain docling
     def extract(self, path: str, **kwargs) -> bool:
+        resolved_path = Path(path)
+        if not resolved_path.is_absolute():
+            resolved_path = (settings.PROJECT_ROOT / resolved_path).resolve()
+
         old_model = self.model.find(path=path)
         if old_model is not None:
             logger.info(f"PDF file already exists in the database: {path}")
@@ -19,7 +26,7 @@ class PDFFileExtractor(FileExtractor):
         file_name = path.split("/")[-1].split(".")[0]
 
         converter = DocumentConverter()
-        content = converter.convert(path)
+        content = converter.convert(str(resolved_path))
 
         content = content.document.export_to_markdown()
 
