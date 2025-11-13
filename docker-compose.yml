@@ -75,6 +75,7 @@ services:
       - ./logs:/opt/airflow/logs
       - ./backend/logs/:/app/logs
       - ./plugins:/opt/airflow/plugins
+      - ./backend/uploads:/opt/airflow/backend/uploads
     command: bash -c "airflow db migrate && airflow users create --username airflow --firstname Airflow --lastname Admin --role Admin --email admin@example.com --password airflow && airflow scheduler & airflow webserver"
     networks:
       - local
