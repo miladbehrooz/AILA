@@ -1,4 +1,3 @@
-from loguru import logger
 from pydantic.type_adapter import P
 
 from .cleaning_data_handlers import (
@@ -31,6 +30,7 @@ from backend.etl.domain.documents import (
 )
 from backend.etl.domain.cleaned_documents import VectorBaseDocument
 from backend.etl.domain.types import DataCategory
+from backend.utils import logger
 
 
 class CleaningHandlerFactory:

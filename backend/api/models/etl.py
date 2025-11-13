@@ -59,3 +59,7 @@ class CancelDagRunResponse(BaseModel):
 
 class SourceValidationRequest(BaseModel):
     sources: list[str]
+
+
+class UploadedFileResponse(BaseModel):
+    stored_path: str

@@ -12,10 +12,12 @@ RUN poetry config virtualenvs.create false
 WORKDIR /opt/airflow
 COPY . .
 
+USER root
 # install dependencies
+RUN poetry lock
 RUN poetry install --no-root --no-interaction --no-ansi
 
-USER root
+
 
 # install git
 RUN apt-get update && apt-get install -y git

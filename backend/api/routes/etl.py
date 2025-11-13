@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Query
+from pathlib import Path
+from uuid import uuid4
+
+from fastapi import APIRouter, Query, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
 from ..models.etl import (
     ETLRequest,
@@ -8,6 +11,7 @@ from ..models.etl import (
     DagRunDetailResponse,
     TaskLogResponse,
     CancelDagRunResponse,
+    UploadedFileResponse,
 )
 from ..services.airflow_service import (
     trigger_etl_dag,
@@ -18,6 +22,7 @@ from ..services.airflow_service import (
     get_etl_task_logs,
     cancel_etl_run,
 )
+from backend.settings import settings
 
 router = APIRouter()
 
@@ -65,3 +70,25 @@ def get_run_logs(
 @router.delete("/runs/{dag_run_id}", response_model=CancelDagRunResponse)
 def cancel_run(dag_run_id: str):
     return cancel_etl_run(dag_run_id)
+
+
+@router.post("/upload-file", response_model=UploadedFileResponse)
+async def upload_file(file: UploadFile = File(...)):
+    uploads_dir = settings.UPLOADS_DIR
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+
+    filename = Path(file.filename or "uploaded_file").name
+    stored_name = f"{uuid4()}_{filename}"
+    destination = uploads_dir / stored_name
+
+    try:
+        content = await file.read()
+        destination.write_bytes(content)
+    except Exception as exc:  # pragma: no cover - defensive
+        if destination.exists():
+            destination.unlink()
+        raise HTTPException(status_code=500, detail=f"Failed to store file: {exc}")
+
+    relative_path = destination.relative_to(settings.PROJECT_ROOT)
+
+    return UploadedFileResponse(stored_path=str(relative_path))

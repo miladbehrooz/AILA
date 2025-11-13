@@ -1,8 +1,8 @@
 import requests
 import yt_dlp
-from loguru import logger
 from .base import URLExtractor, ExtractionResult
 from backend.etl.domain.documents import YoutubeDocument
+from backend.utils import logger
 
 
 class YoutubeVideoExtractor(URLExtractor):

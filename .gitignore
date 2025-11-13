@@ -169,3 +169,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Uploaded files generated at runtime
+backend/uploads/
+frontend/uploads/
