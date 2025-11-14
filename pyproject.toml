@@ -25,7 +25,8 @@ fastapi = "^0.116.1"
 html2text = "^2025.4.15"
 streamlit = "^1.51.0"
 python-dotenv = "^1.0.1"
-load-dotenv = "^0.1.0"
+uvicorn = "^0.32.0"
+python-multipart = "^0.0.20"
 
 
 

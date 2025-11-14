@@ -81,6 +81,73 @@ services:
       - local
     restart: always
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laia_api
+    depends_on:
+      - mongo
+      - qdrant
+      - airflow
+    working_dir: /opt/airflow
+    env_file:
+      - .env
+    environment:
+      AIRFLOW_API_URL: http://airflow:8080/api/v1
+      PYTHONPATH: /opt/airflow
+    entrypoint: []
+    command:
+      - poetry
+      - run
+      - uvicorn
+      - backend.api.app:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/opt/airflow/backend
+      - ./backend/logs:/opt/airflow/backend/logs
+      - ./backend/uploads:/opt/airflow/backend/uploads
+    networks:
+      - local
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laia_frontend
+    depends_on:
+      - api
+    working_dir: /opt/airflow
+    env_file:
+      - frontend/.env
+    environment:
+      DEFUALT_API_BASE_URL: http://api:8000
+      PYTHONPATH: /opt/airflow
+    entrypoint: []
+    command:
+      - poetry
+      - run
+      - streamlit
+      - run
+      - frontend/app.py
+      - --server.port
+      - "8501"
+      - --server.address
+      - 0.0.0.0
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./frontend:/opt/airflow/frontend
+    networks:
+      - local
+    restart: always
+
 
     
 
