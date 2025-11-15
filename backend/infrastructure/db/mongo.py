@@ -1,5 +1,5 @@
 from mongoengine import connect
-from loguru import logger
+from backend.utils import logger
 from backend.settings.settings import settings
 
 
