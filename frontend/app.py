@@ -141,7 +141,19 @@ def persist_uploaded_file(uploaded: UploadedFile) -> str:
     stored_path = payload.get("stored_path")
     if not stored_path:
         raise ValueError("Backend did not return stored_path for uploaded file.")
+
+    uploaded_file_names = st.session_state.setdefault("uploaded_file_names", {})
+    uploaded_file_names[stored_path] = uploaded.name
     return stored_path
+
+
+def _display_name_for_source(source: str) -> str:
+    uploaded_file_names = st.session_state.get("uploaded_file_names", {})
+    return uploaded_file_names.get(source, source)
+
+
+def _display_names_for_sources(sources: list[str]) -> list[str]:
+    return [_display_name_for_source(source) for source in sources]
 
 
 def render_app() -> None:
@@ -307,17 +319,26 @@ def render_app() -> None:
 
             if summary_data:
                 if summary_data.get("new_sources"):
+                    new_sources = _display_names_for_sources(
+                        summary_data["new_sources"]
+                    )
                     st.success(
-                        f"{list_to_str(summary_data['new_sources'])} uploaded successfully."
+                        f"{list_to_str(new_sources)} uploaded successfully."
                     )
 
                 if summary_data.get("duplicate_sources"):
+                    duplicate_sources = _display_names_for_sources(
+                        summary_data["duplicate_sources"]
+                    )
                     st.warning(
-                        f"{list_to_str(summary_data['duplicate_sources']) } already exist."
+                        f"{list_to_str(duplicate_sources) } already exist."
                     )
                 if summary_data.get("failed_sources"):
+                    failed_sources = _display_names_for_sources(
+                        summary_data["failed_sources"]
+                    )
                     st.error(
-                        f"{list_to_str(summary_data['failed_sources'])} failed to upload."
+                        f"{list_to_str(failed_sources)} failed to upload."
                     )
 
             else:

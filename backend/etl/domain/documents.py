@@ -1,5 +1,4 @@
 from abc import ABC
-
 from mongoengine import StringField, DictField
 from backend.etl.domain.base.nosql import NoSQLBaseDocument
 from backend.etl.domain.types import DataCategory

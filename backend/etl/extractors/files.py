@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 from docling.document_converter import DocumentConverter
 from .base import FileExtractor, ExtractionResult
@@ -15,9 +16,17 @@ class PDFFileExtractor(FileExtractor):
         if not resolved_path.is_absolute():
             resolved_path = (settings.PROJECT_ROOT / resolved_path).resolve()
 
-        old_model = self.model.find(path=path)
+        file_hash = self._compute_hash(resolved_path)
+
+        old_model = self.model.find(hash=file_hash)
+        if old_model is None:
+            # Backward compatibility for documents ingested before hashing was added.
+            old_model = self.model.find(path=path)
+
         if old_model is not None:
-            logger.info(f"PDF file already exists in the database: {path}")
+            logger.info(
+                "PDF file already exists in the database: %s (hash=%s)", path, file_hash
+            )
 
             return ExtractionResult.DUPLICATE
         logger.info(f"Starting extracting content from PDF file: {path}")
@@ -33,12 +42,23 @@ class PDFFileExtractor(FileExtractor):
         batch_id = kwargs.get("batch_id", "None")
 
         instance = self.model(
-            path=path, content=content, name=file_name, batch_id=batch_id
+            path=path,
+            content=content,
+            name=file_name,
+            batch_id=batch_id,
+            hash=file_hash,
         )
         instance.save()
 
         logger.info(f"Finished extracting content from PDF file: {path}")
         return ExtractionResult.INSERTED
+
+    def _compute_hash(self, path: Path) -> str:
+        hasher = hashlib.sha256()
+        with path.open("rb") as file:
+            for chunk in iter(lambda: file.read(8192), b""):
+                hasher.update(chunk)
+        return hasher.hexdigest()
 
 
 class WordFileExtractor(FileExtractor):

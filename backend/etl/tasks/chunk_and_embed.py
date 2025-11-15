@@ -1,6 +1,5 @@
 from typing import Annotated
 from airflow.decorators import task
-
 from backend.etl.domain import embedded_chunks
 from backend.etl.preprocessing.dispatchers import (
     ChunkingDispatcher,
