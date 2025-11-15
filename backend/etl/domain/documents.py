@@ -42,6 +42,7 @@ class RepositoryDocument(BaseDocument):
 class PDFDocument(BaseDocument):
     path = StringField(required=True, unique=True)
     name = StringField()
+    hash = StringField(required=True, unique=True)
     meta = {"collection": "pdfs"}
 
     class Settings:
