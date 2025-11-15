@@ -81,11 +81,11 @@ services:
       - local
     restart: always
 
-  api:
+  backend_api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laia_api
+    container_name: laia_backend
     depends_on:
       - mongo
       - qdrant
