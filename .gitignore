@@ -173,3 +173,6 @@ cython_debug/
 # Uploaded files generated at runtime
 backend/uploads/
 frontend/uploads/
+
+# Log files
+logs/
