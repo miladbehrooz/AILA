@@ -6,7 +6,12 @@ from backend.settings import settings
 def setup_logger():
 
     logger.remove()
-    logger.add(sys.stdout, level="INFO")
+    logger.add(
+        sys.stdout,
+        level=settings.LOG_LEVEL,
+        serialize=True,
+        enqueue=True,
+    )
 
     logger.add(
         settings.LOG_FILE_PATH,
@@ -14,6 +19,7 @@ def setup_logger():
         rotation=settings.LOG_ROTATION,
         retention=settings.LOG_RETENTION,
         compression="zip",
+        enqueue=True,
     )
 
     return logger

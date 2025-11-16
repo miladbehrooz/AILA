@@ -171,6 +171,8 @@ services:
       - ./monitoring/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
       - ./backend/logs:/var/log/laia:ro
       - promtail_positions:/tmp
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - local
     restart: always
