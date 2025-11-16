@@ -1,4 +1,5 @@
 from abc import ABC
+from enum import unique
 from mongoengine import StringField, DictField
 from backend.etl.domain.base.nosql import NoSQLBaseDocument
 from backend.etl.domain.types import DataCategory
@@ -41,6 +42,7 @@ class RepositoryDocument(BaseDocument):
 class PDFDocument(BaseDocument):
     path = StringField(required=True, unique=True)
     name = StringField()
+    hash = StringField(required=True, unique=True)
     meta = {"collection": "pdfs"}
 
     class Settings:
