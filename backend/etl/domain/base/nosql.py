@@ -51,9 +51,8 @@ class NoSQLBaseDocument(Document, Generic[T]):
 
     @classmethod
     def get_collection_name(cls: Type[T]) -> str:
-        if "collection" in cls._meta:
-            return cls._meta["collection"]
-
-        raise ImproperlyConfigured(
-            f"{cls.__name__} must declare meta = {{'collection': '...'}}."
-        )
+        if not hasattr(cls, "Settings") or not hasattr(cls.Settings, "name"):
+            raise ImproperlyConfigured(
+                f"{cls.__name__} must define a `Settings` class with a `name` attribute to specify collection name."
+            )
+        return cls.Settings.name

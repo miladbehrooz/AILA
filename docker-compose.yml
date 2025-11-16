@@ -81,11 +81,11 @@ services:
       - local
     restart: always
 
-  api:
+  backend_api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laia_api
+    container_name: laia_backend
     depends_on:
       - mongo
       - qdrant
@@ -122,12 +122,12 @@ services:
       dockerfile: Dockerfile
     container_name: laia_frontend
     depends_on:
-      - api
+      - backend_api
     working_dir: /opt/airflow
     env_file:
       - frontend/.env
     environment:
-      DEFUALT_API_BASE_URL: http://api:8000
+      DEFUALT_API_BASE_URL: http://backend_api:8000
       PYTHONPATH: /opt/airflow
     entrypoint: []
     command:
@@ -148,6 +148,52 @@ services:
       - local
     restart: always
 
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: laia_loki
+    command: -config.file=/etc/loki/loki-config.yml
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    networks:
+      - local
+    restart: always
+
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: laia_promtail
+    depends_on:
+      - loki
+    command: -config.file=/etc/promtail/promtail-config.yml
+    volumes:
+      - ./monitoring/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - ./backend/logs:/var/log/laia:ro
+      - promtail_positions:/tmp
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - local
+    restart: always
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: laia_grafana
+    depends_on:
+      - loki
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
+    networks:
+      - local
+    restart: always
+
 
     
 
@@ -155,6 +201,9 @@ volumes:
   mongo_data:
   postgres_data:
   qdrant_data:
+  loki_data:
+  grafana_data:
+  promtail_positions:
 
 
 networks:
