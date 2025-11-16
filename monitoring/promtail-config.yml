@@ -15,7 +15,7 @@ scrape_configs:
           - localhost
         labels:
           job: laia
-          app: laia
+          service: laia
           env: local
           __path__: /var/log/laia/laia.log
   - job_name: docker-containers
