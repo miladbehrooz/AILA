@@ -8,7 +8,7 @@ from typing import Any, Callable, Generator
 
 import requests
 
-from frontend.settings.settings import settings
+from frontend.settings import settings
 
 
 @lru_cache(maxsize=1)
