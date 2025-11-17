@@ -125,14 +125,16 @@ services:
       - backend_api
     working_dir: /opt/airflow
     env_file:
-      - frontend/.env
+      - .env
     environment:
       DEFUALT_API_BASE_URL: http://backend_api:8000
-      PYTHONPATH: /opt/airflow
+      PYTHONPATH: /opt/airflow:/opt/airflow/frontend
     entrypoint: []
     command:
       - poetry
       - run
+      - python
+      - -m
       - streamlit
       - run
       - frontend/app.py
