@@ -1,6 +1,3 @@
-from __future__ import annotations
-
-
 def human_join(items: list[str]) -> str:
     if not items:
         return ""

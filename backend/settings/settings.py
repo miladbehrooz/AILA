@@ -7,7 +7,9 @@ BACKEND_DIR = PROJECT_ROOT / "backend"
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
 
     # Logging
     LOG_FILE_PATH: str = "backend/logs/laia.log"

@@ -8,12 +8,12 @@ from typing import Any, Callable, Generator
 
 import requests
 
-from frontend.settings.settings import get_settings
+from frontend.settings.settings import settings
 
 
 @lru_cache(maxsize=1)
 def get_api_base_url() -> str:
-    base_url = get_settings().DEFUALT_API_BASE_URL.strip()
+    base_url = settings.DEFUALT_API_BASE_URL.strip()
     if not base_url:
         raise ValueError("DEFUALT_API_BASE_URL environment variable is not set.")
     return base_url.rstrip("/")
