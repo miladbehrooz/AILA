@@ -58,18 +58,32 @@ def _render_runs_table(
     for index, run in enumerate(runs):
         row_number = offset + index + 1
         run["_row_number"] = row_number
+        summary = _get_cached_summary(run.get("dag_run_id", ""))
+        new_count, duplicate_count, failed_count = _summary_counts(summary)
         data.append(
             {
-                "Run ID": row_number,
+                "Run #": row_number,
                 "State": (run.get("state") or "unknown").capitalize(),
+                "Execution Date": _format_timestamp(run.get("execution_date")),
                 "Started": _format_timestamp(run.get("start_date")),
                 "Ended": _format_timestamp(run.get("end_date")),
+                "New": new_count,
+                "Duplicates": duplicate_count,
+                "Failed": failed_count,
             }
         )
 
     table_df = pd.DataFrame(data)
     grid_builder = GridOptionsBuilder.from_dataframe(table_df)
     grid_builder.configure_selection("single", use_checkbox=False)
+    grid_builder.configure_column("Run #", width=90)
+    grid_builder.configure_column("State", width=140)
+    grid_builder.configure_column("Execution Date", width=200)
+    grid_builder.configure_column("Started", width=200)
+    grid_builder.configure_column("Ended", width=200)
+    grid_builder.configure_column("New", width=90)
+    grid_builder.configure_column("Duplicates", width=120)
+    grid_builder.configure_column("Failed", width=90)
     grid_builder.configure_grid_options(domLayout="normal")
     grid_options = grid_builder.build()
 
@@ -94,7 +108,7 @@ def _render_runs_table(
         selected_records = [selected_rows]
 
     if selected_records:
-        selected_run_number = selected_records[0].get("Run ID")
+        selected_run_number = selected_records[0].get("Run #")
         if selected_run_number is not None:
             st.session_state[_SESSION_SELECTED_RUN] = selected_run_number
     else:
@@ -161,6 +175,26 @@ def _render_source_list(label: str, items: list[str], level: str) -> None:
         st.warning(f"{label}:\n{message}")
     else:
         st.error(f"{label}:\n{message}")
+
+
+@st.cache_data(show_spinner=False, ttl=120)
+def _get_cached_summary(dag_run_id: str) -> dict[str, Any] | None:
+    if not dag_run_id:
+        return None
+    try:
+        return etl_service.fetch_extraction_summary_once(dag_run_id)
+    except requests.RequestException:
+        return None
+
+
+def _summary_counts(summary: dict[str, Any] | None) -> tuple[str, str, str]:
+    if not summary:
+        return "-", "-", "-"
+    return (
+        str(len(summary.get("new_sources", []))),
+        str(len(summary.get("duplicate_sources", []))),
+        str(len(summary.get("failed_sources", []))),
+    )
 
 
 def _find_run_by_number(
