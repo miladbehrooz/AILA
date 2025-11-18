@@ -29,22 +29,17 @@ def render_page() -> None:
     runs: list[dict[str, Any]] = runs_payload.get("dag_runs", [])
     total_entries = runs_payload.get("total_entries")
 
-    _render_runs_table(runs, limit, offset, total_entries)
+    selected_run = _render_runs_table(runs, limit, offset, total_entries)
 
-    if not runs:
+    if selected_run is None:
         return
 
-    selected_run = st.selectbox(
-        "Select a run to inspect",
-        options=runs,
-        format_func=lambda run: _format_run_label(run),
-    )
     _render_run_details(selected_run)
 
 
 def _render_runs_table(
     runs: list[dict[str, Any]], limit: int, offset: int, total_entries: Any
-) -> None:
+) -> dict[str, Any] | None:
     st.subheader("Recent runs")
     if total_entries is not None:
         st.caption(
@@ -53,7 +48,7 @@ def _render_runs_table(
 
     if not runs:
         st.info("No ETL runs were found. Upload a source to trigger a DAG run.")
-        return
+        return None
 
     data = []
     for index, run in enumerate(runs):
@@ -69,7 +64,20 @@ def _render_runs_table(
             }
         )
 
-    st.dataframe(data, use_container_width=True)
+    table_event = st.dataframe(
+        data,
+        use_container_width=True,
+        hide_index=True,
+        selection_mode="single-row",
+        key="upload_dashboard_runs_table",
+        on_select="rerun",
+    )
+
+    selected_index = _extract_selected_row(table_event)
+    if selected_index is None and runs:
+        selected_index = 0
+
+    return runs[selected_index] if selected_index is not None else None
 
 
 def _render_run_details(run: dict[str, Any]) -> None:
@@ -135,8 +143,23 @@ def _format_timestamp(value: Any) -> str:
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def _format_run_label(run: dict[str, Any]) -> str:
-    row_number = run.get("_row_number")
-    label_id = f"Run {row_number}" if row_number is not None else "Run"
-    state = (run.get("state") or "unknown").lower()
-    return f"{label_id} ({state})"
+def _extract_selected_row(table_event: Any) -> int | None:
+    selection = getattr(table_event, "selection", None)
+    if selection is None:
+        return None
+
+    rows = None
+    if isinstance(selection, dict):
+        rows = selection.get("rows")
+    else:
+        rows = getattr(selection, "rows", None)
+        if rows is None and hasattr(selection, "__dict__"):
+            rows = selection.__dict__.get("rows")
+
+    if not rows:
+        return None
+
+    try:
+        return int(rows[0])
+    except (TypeError, ValueError, IndexError):
+        return None
