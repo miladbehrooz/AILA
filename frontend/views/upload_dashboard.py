@@ -55,18 +55,19 @@ def _render_runs_table(
         st.info("No ETL runs were found. Upload a source to trigger a DAG run.")
         return
 
-    data = [
-        {
-            "Run ID": run.get("dag_run_id"),
-            "State": (run.get("state") or "unknown").capitalize(),
-            "Execution Date": _format_timestamp(run.get("execution_date")),
-            "Started": _format_timestamp(run.get("start_date")),
-            "Ended": _format_timestamp(run.get("end_date")),
-            "Run Type": run.get("run_type") or "n/a",
-            "External Trigger": "Yes" if run.get("external_trigger") else "No",
-        }
-        for run in runs
-    ]
+    data = []
+    for index, run in enumerate(runs):
+        row_number = offset + index + 1
+        run["_row_number"] = row_number
+        data.append(
+            {
+                "Run #": row_number,
+                "State": (run.get("state") or "unknown").capitalize(),
+                "Execution Date": _format_timestamp(run.get("execution_date")),
+                "Started": _format_timestamp(run.get("start_date")),
+                "Ended": _format_timestamp(run.get("end_date")),
+            }
+        )
 
     st.dataframe(data, use_container_width=True)
 
@@ -74,9 +75,10 @@ def _render_runs_table(
 def _render_run_details(run: dict[str, Any]) -> None:
     st.subheader("Run details")
     metadata_cols = st.columns(3)
-    metadata_cols[0].metric("Run ID", run.get("dag_run_id") or "-", delta=None)
+    metadata_cols[0].metric("Run #", run.get("_row_number", "-"), delta=None)
     metadata_cols[1].metric("State", (run.get("state") or "unknown").capitalize())
     metadata_cols[2].metric("Triggered", _format_timestamp(run.get("start_date")))
+    st.caption(f"Airflow DAG run ID: {run.get('dag_run_id') or '-'}")
 
     summary_placeholder = st.container()
     with summary_placeholder:
@@ -134,6 +136,7 @@ def _format_timestamp(value: Any) -> str:
 
 
 def _format_run_label(run: dict[str, Any]) -> str:
-    run_id = run.get("dag_run_id") or "unknown run"
+    row_number = run.get("_row_number")
+    label_id = f"Run {row_number}" if row_number is not None else "Run"
     state = (run.get("state") or "unknown").lower()
-    return f"{run_id} ({state})"
+    return f"{label_id} ({state})"
