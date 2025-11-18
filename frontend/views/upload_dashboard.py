@@ -54,9 +54,12 @@ def _render_runs_table(
         st.info("No ETL runs were found. Upload a source to trigger a DAG run.")
         return None
 
-    data = []
+    data: list[dict[str, Any]] = []
     for index, run in enumerate(runs):
-        row_number = offset + index + 1
+        if total_entries is not None:
+            row_number = total_entries - (offset + index)
+        else:
+            row_number = offset + index + 1
         run["_row_number"] = row_number
         summary = _get_cached_summary(run.get("dag_run_id", ""))
         new_count, duplicate_count, failed_count = _summary_counts(summary)
@@ -72,6 +75,7 @@ def _render_runs_table(
             }
         )
 
+    data.sort(key=lambda row: row["Run ID"], reverse=True)
     table_df = pd.DataFrame(data)
     grid_builder = GridOptionsBuilder.from_dataframe(table_df)
     grid_builder.configure_selection("single", use_checkbox=False)
@@ -80,7 +84,7 @@ def _render_runs_table(
     grid_builder.configure_column("Execution Date", width=200)
     grid_builder.configure_column("Started", width=200)
     grid_builder.configure_column("Ended", width=200)
-    grid_builder.configure_column("Run Summary", width=220)
+    grid_builder.configure_column("Run Summary", width=260)
     grid_builder.configure_grid_options(domLayout="normal")
     grid_options = grid_builder.build()
 
@@ -104,22 +108,23 @@ def _render_runs_table(
     else:
         selected_records = [selected_rows]
 
+    page_run_numbers = [row["Run ID"] for row in data]
+
     if selected_records:
-        selected_run_number = selected_records[0].get("ID")
+        selected_run_number = selected_records[0].get("Run ID")
         if selected_run_number is not None:
             st.session_state[_SESSION_SELECTED_RUN] = selected_run_number
     else:
         selected_run_number = st.session_state.get(_SESSION_SELECTED_RUN)
-        if isinstance(selected_run_number, int) and not (
-            offset < selected_run_number <= offset + len(runs)
-        ):
+        if selected_run_number not in page_run_numbers:
             selected_run_number = None
 
-        if selected_run_number is None and runs:
-            selected_run_number = offset + 1
+        if selected_run_number is None and page_run_numbers:
+            selected_run_number = page_run_numbers[0]
             st.session_state[_SESSION_SELECTED_RUN] = selected_run_number
 
-    return _find_run_by_number(runs, st.session_state.get(_SESSION_SELECTED_RUN))
+    final_run_number = st.session_state.get(_SESSION_SELECTED_RUN)
+    return _find_run_by_number(runs, final_run_number)
 
 
 def _render_run_details(run: dict[str, Any]) -> None:
