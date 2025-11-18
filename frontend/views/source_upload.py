@@ -16,7 +16,6 @@ from frontend.utils.text import human_join
 
 
 def render_page() -> None:
-    st.set_page_config(page_title="Source Upload", layout="centered")
     st.title("Source Upload")
     st.caption(
         "Upload Sources (web articles, youtube videos, github repos, PDF files)."
