@@ -1,10 +1,14 @@
 from datetime import datetime
 from typing import Any
 
+import pandas as pd
 import requests
 import streamlit as st
+from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 
 from frontend.services import etl_service
+
+_SESSION_SELECTED_RUN = "upload_dashboard_selected_run"
 
 
 def render_page() -> None:
@@ -56,28 +60,55 @@ def _render_runs_table(
         run["_row_number"] = row_number
         data.append(
             {
-                "Run #": row_number,
+                "Run ID": row_number,
                 "State": (run.get("state") or "unknown").capitalize(),
-                "Execution Date": _format_timestamp(run.get("execution_date")),
                 "Started": _format_timestamp(run.get("start_date")),
                 "Ended": _format_timestamp(run.get("end_date")),
             }
         )
 
-    table_event = st.dataframe(
-        data,
-        use_container_width=True,
-        hide_index=True,
-        selection_mode="single-row",
-        key="upload_dashboard_runs_table",
-        on_select="rerun",
+    table_df = pd.DataFrame(data)
+    grid_builder = GridOptionsBuilder.from_dataframe(table_df)
+    grid_builder.configure_selection("single", use_checkbox=False)
+    grid_builder.configure_grid_options(domLayout="normal")
+    grid_options = grid_builder.build()
+
+    grid_response = AgGrid(
+        table_df,
+        gridOptions=grid_options,
+        height=400,
+        update_mode=GridUpdateMode.SELECTION_CHANGED,
+        fit_columns_on_grid_load=True,
+        theme="streamlit",
+        key=f"upload_dashboard_runs_table_{offset}_{limit}",
     )
 
-    selected_index = _extract_selected_row(table_event)
-    if selected_index is None and runs:
-        selected_index = 0
+    selected_rows = grid_response.get("selected_rows")
+    if selected_rows is None:
+        selected_records: list[dict[str, Any]] = []
+    elif isinstance(selected_rows, pd.DataFrame):
+        selected_records = selected_rows.to_dict("records")
+    elif isinstance(selected_rows, list):
+        selected_records = selected_rows
+    else:
+        selected_records = [selected_rows]
 
-    return runs[selected_index] if selected_index is not None else None
+    if selected_records:
+        selected_run_number = selected_records[0].get("Run ID")
+        if selected_run_number is not None:
+            st.session_state[_SESSION_SELECTED_RUN] = selected_run_number
+    else:
+        selected_run_number = st.session_state.get(_SESSION_SELECTED_RUN)
+        if isinstance(selected_run_number, int) and not (
+            offset < selected_run_number <= offset + len(runs)
+        ):
+            selected_run_number = None
+
+        if selected_run_number is None and runs:
+            selected_run_number = offset + 1
+            st.session_state[_SESSION_SELECTED_RUN] = selected_run_number
+
+    return _find_run_by_number(runs, st.session_state.get(_SESSION_SELECTED_RUN))
 
 
 def _render_run_details(run: dict[str, Any]) -> None:
@@ -132,6 +163,18 @@ def _render_source_list(label: str, items: list[str], level: str) -> None:
         st.error(f"{label}:\n{message}")
 
 
+def _find_run_by_number(
+    runs: list[dict[str, Any]], row_number: Any
+) -> dict[str, Any] | None:
+    if row_number is None:
+        return None
+
+    for run in runs:
+        if run.get("_row_number") == row_number:
+            return run
+    return None
+
+
 def _format_timestamp(value: Any) -> str:
     if not value or not isinstance(value, str):
         return "-"
@@ -141,25 +184,3 @@ def _format_timestamp(value: Any) -> str:
     except ValueError:
         return value
     return dt.strftime("%Y-%m-%d %H:%M:%S")
-
-
-def _extract_selected_row(table_event: Any) -> int | None:
-    selection = getattr(table_event, "selection", None)
-    if selection is None:
-        return None
-
-    rows = None
-    if isinstance(selection, dict):
-        rows = selection.get("rows")
-    else:
-        rows = getattr(selection, "rows", None)
-        if rows is None and hasattr(selection, "__dict__"):
-            rows = selection.__dict__.get("rows")
-
-    if not rows:
-        return None
-
-    try:
-        return int(rows[0])
-    except (TypeError, ValueError, IndexError):
-        return None
