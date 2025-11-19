@@ -12,8 +12,8 @@ _SESSION_SELECTED_RUN = "upload_dashboard_selected_run"
 
 
 def render_page() -> None:
-    st.title("Upload Dashboard")
-    st.caption("Review historical file-upload sessions and their ETL outcomes.")
+    st.title("Data Upload Dashboard")
+    st.caption("Review historical data upload sessions and their outcomes.")
 
     if "runs_table_limit" not in st.session_state:
         st.session_state["runs_table_limit"] = 25
