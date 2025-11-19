@@ -62,22 +62,30 @@ def wait_for_dag_completion(
     return None
 
 
+def _fetch_extraction_summary_once(dag_run_id: str) -> dict[str, Any] | None:
+    url = _build_url(f"/etl/extracted-sources/{dag_run_id}")
+    try:
+        response = requests.get(url, timeout=60)
+        response.raise_for_status()
+        return response.json()
+    except requests.HTTPError as exc:
+        status_code = exc.response.status_code if exc.response else None
+        if status_code == 404:
+            return None
+        raise
+
+
 def fetch_extraction_summary(
     dag_run_id: str, max_attempts: int = 10, delay_seconds: float = 3.0
 ) -> dict[str, Any] | None:
-    url = _build_url(f"/etl/extracted-sources/{dag_run_id}")
     for attempt in range(max_attempts):
         try:
-            response = requests.get(url, timeout=60)
-            response.raise_for_status()
-            return response.json()
-        except requests.HTTPError as exc:
-            status_code = exc.response.status_code if exc.response else None
-            if status_code == 404:
-                if attempt < max_attempts - 1:
-                    time.sleep(delay_seconds)
-                    continue
-                return None
+            result = _fetch_extraction_summary_once(dag_run_id)
+            if result is not None:
+                return result
+            if attempt < max_attempts - 1:
+                time.sleep(delay_seconds)
+        except requests.HTTPError:
             raise
         except requests.RequestException:
             if attempt < max_attempts - 1:
@@ -85,6 +93,10 @@ def fetch_extraction_summary(
                 continue
             raise
     return None
+
+
+def fetch_extraction_summary_once(dag_run_id: str) -> dict[str, Any] | None:
+    return _fetch_extraction_summary_once(dag_run_id)
 
 
 @dataclass(slots=True)
@@ -112,3 +124,19 @@ def upload_source_file(payload: UploadedFilePayload) -> str:
     if not stored_path:
         raise ValueError("Backend did not return stored_path for uploaded file.")
     return stored_path
+
+
+def list_etl_runs(limit: int = 25, offset: int = 0) -> dict[str, Any]:
+    response = requests.get(
+        _build_url("/etl/runs"),
+        params={"limit": limit, "offset": offset},
+        timeout=60,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def get_etl_run(dag_run_id: str) -> dict[str, Any]:
+    response = requests.get(_build_url(f"/etl/runs/{dag_run_id}"), timeout=60)
+    response.raise_for_status()
+    return response.json()

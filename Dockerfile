@@ -5,6 +5,11 @@ USER airflow
 # install poetry
 RUN pip install poetry
 
+# increase install timeouts/retries to reduce transient build failures
+ENV POETRY_HTTP_TIMEOUT=120 \
+    POETRY_HTTP_RETRIES=5 \
+    PIP_DEFAULT_TIMEOUT=120
+
 # set poetry to install into system environment
 RUN poetry config virtualenvs.create false
 
