@@ -15,12 +15,13 @@ def render_page() -> None:
     st.title("Upload Dashboard")
     st.caption("Review historical file-upload sessions and their ETL outcomes.")
 
-    controls_col, page_col = st.columns([1, 1])
-    limit = controls_col.selectbox("Rows per page", options=[10, 25, 50, 100], index=1)
-    page_value = page_col.number_input(
-        "Page", min_value=1, value=1, step=1, format="%d"
-    )
-    page = int(page_value)
+    if "runs_table_limit" not in st.session_state:
+        st.session_state["runs_table_limit"] = 25
+    if "runs_table_page" not in st.session_state:
+        st.session_state["runs_table_page"] = 1
+
+    limit = st.session_state["runs_table_limit"]
+    page = st.session_state["runs_table_page"]
     offset = (page - 1) * limit
 
     try:
@@ -36,8 +37,10 @@ def render_page() -> None:
     selected_run = _render_runs_table(runs, limit, offset, total_entries)
 
     if selected_run is None:
+        _render_table_controls(limit, page, total_entries)
         return
 
+    _render_table_controls(limit, page, total_entries)
     _render_run_details(selected_run)
 
 
@@ -177,6 +180,45 @@ def _render_source_list(label: str, items: list[str], level: str) -> None:
         st.warning(f"{label}:\n{message}")
     else:
         st.error(f"{label}:\n{message}")
+
+
+def _render_table_controls(limit: int, page: int, total_entries: Any) -> None:
+
+    with st.container(border=False):
+        control_cols = st.columns([1, 1, 1, 0.8, 1, 1, 1, 1])
+        per_page_options = [10, 25, 50, 100]
+        if limit not in per_page_options:
+            per_page_options.append(limit)
+            per_page_options.sort()
+
+        new_limit = control_cols[3].selectbox(
+            "Rows per page",
+            options=per_page_options,
+            index=per_page_options.index(limit),
+        )
+
+        max_page = (
+            max(1, (total_entries + new_limit - 1) // new_limit)
+            if (total_entries is not None and total_entries > 0)
+            else page
+        )
+
+        new_page_value = control_cols[4].number_input(
+            "Go to page",
+            min_value=1,
+            value=min(page, max_page),
+            max_value=max_page,
+            step=1,
+        )
+        target_page = int(new_page_value)
+
+    if (
+        target_page != st.session_state["runs_table_page"]
+        or new_limit != st.session_state["runs_table_limit"]
+    ):
+        st.session_state["runs_table_page"] = target_page
+        st.session_state["runs_table_limit"] = new_limit
+        st.rerun()
 
 
 @st.cache_data(show_spinner=False, ttl=120)
