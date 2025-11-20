@@ -9,7 +9,6 @@ def setup_logger():
     logger.add(
         sys.stdout,
         level=settings.LOG_LEVEL,
-        serialize=True,
         enqueue=True,
     )
 
