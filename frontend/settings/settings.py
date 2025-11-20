@@ -7,6 +7,10 @@ class Settings(BaseSettings):
     )
 
     DEFUALT_API_BASE_URL: str = "http://localhost:8000/"
+    LOG_FILE_PATH: str = "frontend/logs/frontend.log"
+    LOG_LEVEL: str = "INFO"
+    LOG_ROTATION: str = "5 MB"
+    LOG_RETENTION: str = "7 days"
 
 
 settings = Settings()
