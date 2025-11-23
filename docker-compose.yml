@@ -127,7 +127,7 @@ services:
     env_file:
       - .env
     environment:
-      DEFUALT_API_BASE_URL: http://backend_api:8000
+      DEFUALT_API_BASE_URL: http://backend_api:8000/api/v1
       PYTHONPATH: /opt/airflow:/opt/airflow/frontend
     entrypoint: []
     command:
