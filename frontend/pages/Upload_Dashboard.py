@@ -7,6 +7,7 @@ import streamlit as st
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 
 from frontend.services import etl_service
+from frontend.utils.errors import show_technical_issue
 
 from loguru import logger
 
@@ -31,8 +32,14 @@ def render_page() -> None:
         with st.spinner("Loading ETL runs..."):
             runs_payload = etl_service.list_etl_runs(limit=limit, offset=offset)
     except requests.RequestException as exc:
-        logger.exception(f"Unable to load ETL runs for page={page} limit={limit}")
-        st.error(f"Unable to load ETL runs: {exc}")
+        logger.opt(exception=exc).error(
+            "Unable to load ETL runs for page={} limit={}", page, limit
+        )
+        show_technical_issue(
+            log_message=f"ETL runs API call failed for page={page} limit={limit}",
+            exc=exc,
+            level="error",
+        )
         return
 
     runs: list[dict[str, Any]] = runs_payload.get("dag_runs", [])
@@ -167,23 +174,25 @@ def _render_run_details(run: dict[str, Any]) -> None:
                 run.get("dag_run_id", "")
             )
         except requests.RequestException as exc:
-            logger.exception(
-                "Unable to load extraction summary for dag_run_id={run.get('dag_run_id')}"
+            dag_run_id = run.get("dag_run_id")
+            logger.opt(exception=exc).error(
+                "Unable to load extraction summary for dag_run_id={}", dag_run_id
             )
-            st.error(f"Unable to load extraction summary: {exc}")
+            show_technical_issue(
+                log_message=f"Extraction summary request failed for dag_run_id={dag_run_id}",
+                exc=exc,
+            )
             return
 
         if summary is None:
             logger.info(
                 "Extraction summary not yet available for dag_run_id=run.get('dag_run_id')",
             )
-            st.info(
-                "Extraction summary is not available yet. The DAG may still be in progress, or the summary has not been stored."
-            )
+            st.info("Extraction summary is not available yet. Try again later")
             return
 
         logger.info(
-            f"Rendering extraction summary for dag_run_id={run.get('dag_run_id')}" 
+            f"Rendering extraction summary for dag_run_id={run.get('dag_run_id')}"
         )
         _render_summary(summary)
         st.caption(f"Airflow DAG run ID: {run.get('dag_run_id') or '-'}")
