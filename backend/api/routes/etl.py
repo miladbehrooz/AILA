@@ -24,28 +24,26 @@ from ..services.airflow_service import (
 )
 from backend.settings import settings
 
-router = APIRouter()
+router = APIRouter(tags=["ETL"])
 
 
-@router.post("/trigger", response_model=TriggerDAGResponse)
-def trigger_etl(req: ETLRequest):
+@router.post("/runs", response_model=TriggerDAGResponse)
+def create_run(req: ETLRequest):
     return trigger_etl_dag(req.sources)
 
 
-# TODO: make it Endpoint with Polling Logic
-@router.get("/extracted-sources/{dag_run_id}", response_model=ExtractedSourcesResponse)
+@router.get(
+    "/runs/{dag_run_id}/extracted-sources", response_model=ExtractedSourcesResponse
+)
 def get_extracted_sources(dag_run_id: str):
     return get_etl_extracted_sources(dag_run_id=dag_run_id)
 
 
-@router.get("/stream-etl-status/{dag_run_id}")
-def stream_etl_status(dag_run_id: str):
+@router.get("/runs/{dag_run_id}/status/stream")
+def stream_run_status(dag_run_id: str):
     return StreamingResponse(
         get_etl_status_stream(dag_run_id), media_type="text/event-stream"
     )
-
-
-# TODO: endpoint with Polling Logic or stream for status of the ETL DAG (sucessfull or failed)
 
 
 @router.get("/runs", response_model=DagRunsResponse)
@@ -72,7 +70,7 @@ def cancel_run(dag_run_id: str):
     return cancel_etl_run(dag_run_id)
 
 
-@router.post("/upload-file", response_model=UploadedFileResponse)
+@router.post("/files", response_model=UploadedFileResponse)
 async def upload_file(file: UploadFile = File(...)):
     uploads_dir = settings.UPLOADS_DIR
     uploads_dir.mkdir(parents=True, exist_ok=True)
