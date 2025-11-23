@@ -12,7 +12,7 @@ from frontend.services.etl_service import (
     wait_for_dag_completion,
 )
 from frontend.state import source_fields
-
+from frontend.utils.errors import show_technical_issue
 from frontend.utils.text import human_join
 from loguru import logger
 
@@ -82,7 +82,7 @@ def _render_source_inputs() -> None:
 
 
 def _handle_submission() -> None:
-    logger.info("Handling source upload submission")
+    logger.info("Handling data upload submission")
     sources, errors = _collect_sources()
     logger.debug(
         f"Collected {len(sources)} source(s) with { len(errors)} validation error(s)",
@@ -101,10 +101,16 @@ def _handle_submission() -> None:
         trigger_response = trigger_etl(sources)
     except requests.HTTPError as exc:
         detail = exc.response.text if exc.response is not None else str(exc)
-        st.error(f"Request failed: {detail}")
+        show_technical_issue(
+            log_message=f"ETL trigger request failed: {detail}",
+            exc=exc,
+        )
         return
     except requests.RequestException as exc:
-        st.error(f"Unable to reach backend API: {exc}")
+        show_technical_issue(
+            log_message="Unable to reach backend API while triggering ETL run.",
+            exc=exc,
+        )
         return
 
     dag_run_id = trigger_response.get("dag_run_id")
@@ -113,14 +119,14 @@ def _handle_submission() -> None:
 
     if dag_run_id:
         status_box = st.status(
-            "Awaiting source upload status updates...",
+            "Awaiting data upload status updates...",
             state="running",
             expanded=False,
         )
 
         def _update_state(state: str) -> None:
             status_box.update(
-                label="Source upload is running...",
+                label="Data upload is running...",
                 state="running",
                 expanded=False,
             )
@@ -128,8 +134,15 @@ def _handle_submission() -> None:
         try:
             final_state = wait_for_dag_completion(dag_run_id, _update_state)
         except requests.RequestException as exc:
+            logger.opt(exception=exc).error(
+                "Unable to stream data upload status updates for dag_run_id={}",
+                dag_run_id,
+            )
             status_box.update(
-                label=f"Unable to stream source upload status updates: {exc}",
+                label=(
+                    "We couldn't stream data upload status updates due to "
+                    "a technical issue. Please try again later."
+                ),
                 state="error",
                 expanded=False,
             )
@@ -137,13 +150,13 @@ def _handle_submission() -> None:
         else:
             if final_state == "success":
                 status_box.update(
-                    label="Source upload finished successfully.",
+                    label="Data upload finished successfully.",
                     state="complete",
                     expanded=False,
                 )
             elif final_state:
                 status_box.update(
-                    label=f"Source upload finished with state `{final_state}`.",
+                    label=f"Data upload finished with state `{final_state}`.",
                     state="error",
                     expanded=False,
                 )
@@ -163,12 +176,23 @@ def _handle_submission() -> None:
             )
         except requests.HTTPError as exc:
             detail = exc.response.text if exc.response is not None else str(exc)
-            st.warning(
-                "Unable to retrieve extraction summary "
-                f"for DAG run {dag_run_id}: {detail}"
+            show_technical_issue(
+                log_message=(
+                    f"HTTP error while retrieving extraction summary for "
+                    f"dag_run_id={dag_run_id}: {detail}"
+                ),
+                exc=exc,
+                level="warning",
             )
         except requests.RequestException as exc:
-            st.warning(f"Unable to contact backend for extraction summary: {exc}")
+            show_technical_issue(
+                log_message=(
+                    f"Request error while contacting backend for extraction summary "
+                    f"dag_run_id={dag_run_id}"
+                ),
+                exc=exc,
+                level="warning",
+            )
     else:
         logger.warning("Backend did not include dag_run_id for upload submission")
         st.info(
