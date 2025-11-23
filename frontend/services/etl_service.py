@@ -30,7 +30,7 @@ def trigger_etl(sources: list[str]) -> dict[str, Any]:
     logger.info(f"Triggering ETL run for {len(sources)} source(s)")
     try:
         response = requests.post(
-            _build_url("/etl/trigger"),
+            _build_url("/etl/runs"),
             json={"sources": sources},
             timeout=60,
         )
@@ -52,7 +52,7 @@ def stream_etl_states(dag_run_id: str) -> Generator[str, None, None]:
     logger.info("Streaming ETL states for dag_run_id={}", dag_run_id)
     try:
         with requests.get(
-            _build_url(f"/etl/stream-etl-status/{dag_run_id}"),
+            _build_url(f"/etl/runs/{dag_run_id}/status/stream"),
             stream=True,
             timeout=60,
         ) as response:
@@ -100,7 +100,7 @@ def wait_for_dag_completion(
 
 
 def _fetch_extraction_summary_once(dag_run_id: str) -> dict[str, Any] | None:
-    url = _build_url(f"/etl/extracted-sources/{dag_run_id}")
+    url = _build_url(f"/etl/runs/{dag_run_id}/extracted-sources")
     logger.debug("Fetching extraction summary from {}", url)
     try:
         response = requests.get(url, timeout=60)
@@ -201,7 +201,7 @@ def upload_source_file(payload: UploadedFilePayload) -> str:
     }
     try:
         response = requests.post(
-            _build_url("/etl/upload-file"),
+            _build_url("/etl/files"),
             files=files,
             timeout=60,
         )
