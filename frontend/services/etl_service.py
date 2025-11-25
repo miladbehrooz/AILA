@@ -265,3 +265,24 @@ def get_etl_run(dag_run_id: str) -> dict[str, Any]:
     payload = response.json()
     logger.info("Fetched ETL run metadata for dag_run_id={}", dag_run_id)
     return payload
+
+
+def cancel_etl_run(dag_run_id: str) -> dict[str, Any]:
+    logger.info("Requesting cancellation for dag_run_id={}", dag_run_id)
+    try:
+        response = requests.delete(
+            _build_url(f"/etl/runs/{dag_run_id}"),
+            timeout=60,
+        )
+        response.raise_for_status()
+    except requests.RequestException:
+        logger.exception("Failed to cancel ETL run dag_run_id={}", dag_run_id)
+        raise
+
+    payload = response.json()
+    logger.info(
+        "Cancellation acknowledged for dag_run_id={} (dag_id={})",
+        dag_run_id,
+        payload.get("dag_id"),
+    )
+    return payload
