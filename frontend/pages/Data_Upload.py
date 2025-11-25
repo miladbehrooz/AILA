@@ -18,6 +18,8 @@ from frontend.utils.text import human_join
 from loguru import logger
 
 ACTIVE_DAG_RUN_KEY = "active_dag_run_id"
+CANCEL_MESSAGE_KEY = "cancel_run_message"
+CANCEL_MESSAGE_TYPE_KEY = "cancel_run_message_type"
 
 
 def render_page() -> None:
@@ -29,6 +31,8 @@ def render_page() -> None:
 
     source_fields.init_source_fields()
     st.session_state.setdefault(ACTIVE_DAG_RUN_KEY, None)
+    st.session_state.setdefault(CANCEL_MESSAGE_KEY, "")
+    st.session_state.setdefault(CANCEL_MESSAGE_TYPE_KEY, "info")
     _render_source_inputs()
 
     upload_col, cancel_col = st.columns([2.8, 1.2])
@@ -41,6 +45,15 @@ def render_page() -> None:
     with cancel_col:
         if st.button("Cancel", type="secondary", use_container_width=True):
             _handle_cancel()
+
+    cancel_message = st.session_state.get(CANCEL_MESSAGE_KEY)
+    if cancel_message:
+        message_type = st.session_state.get(CANCEL_MESSAGE_TYPE_KEY, "success")
+        if message_type == "success":
+            st.success(cancel_message)
+        else:
+            st.info(cancel_message)
+        st.session_state[CANCEL_MESSAGE_KEY] = ""
 
 
 def _render_source_inputs() -> None:
@@ -252,7 +265,10 @@ def _collect_sources() -> tuple[list[str], list[str]]:
 def _handle_cancel() -> None:
     dag_run_id = st.session_state.get(ACTIVE_DAG_RUN_KEY)
     if not dag_run_id:
-        st.info("There is no active data upload to cancel.")
+        st.session_state[CANCEL_MESSAGE_KEY] = (
+            "There is no active data upload to cancel."
+        )
+        st.session_state[CANCEL_MESSAGE_TYPE_KEY] = "info"
         return
 
     logger.info("Cancel button clicked for dag_run_id={}", dag_run_id)
@@ -278,7 +294,9 @@ def _handle_cancel() -> None:
 
     st.session_state[ACTIVE_DAG_RUN_KEY] = None
     logger.info("ETL cancellation response for dag_run_id={}", dag_run_id)
-    st.success("Cancellation requested successfully.")
+    message = "Cancellation requested successfully."
+    st.session_state[CANCEL_MESSAGE_KEY] = message
+    st.session_state[CANCEL_MESSAGE_TYPE_KEY] = "success"
 
 
 def _render_summary(summary_data: dict[str, Any]) -> None:
