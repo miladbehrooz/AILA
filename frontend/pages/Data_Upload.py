@@ -6,6 +6,7 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from frontend.services.etl_service import (
     UploadedFilePayload,
+    cancel_etl_run,
     fetch_extraction_summary,
     trigger_etl,
     upload_source_file,
@@ -16,6 +17,8 @@ from frontend.utils.errors import show_technical_issue
 from frontend.utils.text import human_join
 from loguru import logger
 
+ACTIVE_DAG_RUN_KEY = "active_dag_run_id"
+
 
 def render_page() -> None:
     logger.debug("Rendering Data Upload page")
@@ -25,13 +28,19 @@ def render_page() -> None:
     )
 
     source_fields.init_source_fields()
+    st.session_state.setdefault(ACTIVE_DAG_RUN_KEY, None)
     _render_source_inputs()
 
-    if st.button("Upload", type="primary", use_container_width=True):
-        logger.info(
-            f"Upload button clicked with {len(source_fields.get_source_fields())} source field(s)",
-        )
-        _handle_submission()
+    upload_col, cancel_col = st.columns([2.8, 1.2])
+    with upload_col:
+        if st.button("Upload", type="primary", use_container_width=True):
+            logger.info(
+                f"Upload button clicked with {len(source_fields.get_source_fields())} source field(s)",
+            )
+            _handle_submission()
+    with cancel_col:
+        if st.button("Cancel", type="secondary", use_container_width=True):
+            _handle_cancel()
 
 
 def _render_source_inputs() -> None:
@@ -118,6 +127,7 @@ def _handle_submission() -> None:
     summary_data: dict[str, Any] | None = None
 
     if dag_run_id:
+        st.session_state[ACTIVE_DAG_RUN_KEY] = dag_run_id
         status_box = st.status(
             "Awaiting data upload status updates...",
             state="running",
@@ -193,6 +203,8 @@ def _handle_submission() -> None:
                 exc=exc,
                 level="warning",
             )
+        finally:
+            st.session_state[ACTIVE_DAG_RUN_KEY] = None
     else:
         logger.warning("Backend did not include dag_run_id for upload submission")
         st.info(
@@ -235,6 +247,38 @@ def _collect_sources() -> tuple[list[str], list[str]]:
                 errors.append("Please select a file for all upload inputs.")
 
     return collected_sources, errors
+
+
+def _handle_cancel() -> None:
+    dag_run_id = st.session_state.get(ACTIVE_DAG_RUN_KEY)
+    if not dag_run_id:
+        st.info("There is no active data upload to cancel.")
+        return
+
+    logger.info("Cancel button clicked for dag_run_id={}", dag_run_id)
+    try:
+        response = cancel_etl_run(dag_run_id)
+    except requests.HTTPError as exc:
+        detail = exc.response.text if exc.response is not None else str(exc)
+        show_technical_issue(
+            log_message=(
+                f"Backend rejected ETL cancellation for dag_run_id={dag_run_id}: {detail}"
+            ),
+            exc=exc,
+        )
+        return
+    except requests.RequestException as exc:
+        show_technical_issue(
+            log_message=(
+                f"Unable to reach backend API while cancelling dag_run_id={dag_run_id}."
+            ),
+            exc=exc,
+        )
+        return
+
+    st.session_state[ACTIVE_DAG_RUN_KEY] = None
+    logger.info("ETL cancellation response for dag_run_id={}", dag_run_id)
+    st.success("Cancellation requested successfully.")
 
 
 def _render_summary(summary_data: dict[str, Any]) -> None:
