@@ -9,6 +9,15 @@ from backend.etl.domain.documents import (
 )
 
 
+def clean_data_warehouse(batch_id: str) -> dict[str, int]:
+
+    result = delete_all_data(batch_id=batch_id)
+    logger.info(
+        f"Deleted {result} documents wtih batch_id {batch_id} from the data warehouse."
+    )
+    return result
+
+
 def delete_all_data(batch_id: str) -> dict[str, int]:
 
     with ThreadPoolExecutor() as executor:

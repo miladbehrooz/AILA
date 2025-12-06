@@ -53,7 +53,6 @@ class NoSQLBaseDocument(Document, Generic[T]):
     def bulk_delete(cls: Type[T], **filter_options) -> int:
         try:
             result = cls.objects(**filter_options).delete()
-            logger.info(f"Deleted {result} documents matching filter {filter_options}.")
             return result
         except Exception as e:
             logger.error(f"Failed to bulk delete documents: {e}")
