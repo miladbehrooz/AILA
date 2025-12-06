@@ -55,6 +55,8 @@ class CancelDagRunResponse(BaseModel):
     message: str
     dag_id: str
     dag_run_id: str
+    batch_id: Optional[str] = None
+    deleted_documents: Optional[dict[str, int]] = None
 
 
 class SourceValidationRequest(BaseModel):
