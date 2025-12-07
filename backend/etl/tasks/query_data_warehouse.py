@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID, uuid4
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from airflow.decorators import task
 from backend.utils import logger
@@ -13,7 +14,7 @@ from backend.etl.domain.documents import (
 
 @task
 def query_data_warehouse(
-    batch_id: str, new_extraction: bool
+    batch_id: UUID, new_extraction: bool
 ) -> Annotated[list, "raw documents"]:
     if not new_extraction:
         logger.info("No new data extracted. Skipping warehouse query.")
@@ -32,7 +33,7 @@ def query_data_warehouse(
     return documents
 
 
-def fetch_all_data(batch_id: str) -> dict[str, list[NoSQLBaseDocument]]:
+def fetch_all_data(batch_id: UUID) -> dict[str, list[NoSQLBaseDocument]]:
 
     with ThreadPoolExecutor() as executor:
 
@@ -56,23 +57,23 @@ def fetch_all_data(batch_id: str) -> dict[str, list[NoSQLBaseDocument]]:
     return results
 
 
-def __fetch_articles(batch_id: str) -> list[NoSQLBaseDocument]:
+def __fetch_articles(batch_id: UUID) -> list[NoSQLBaseDocument]:
     return ArticleDocument.bulk_find(batch_id=batch_id)
 
 
-def __fetch_youtube_videos(batch_id: str) -> list[NoSQLBaseDocument]:
+def __fetch_youtube_videos(batch_id: UUID) -> list[NoSQLBaseDocument]:
     return YoutubeDocument.bulk_find(batch_id=batch_id)
 
 
-def __fetch_repositories(batch_id: str) -> list[NoSQLBaseDocument]:
+def __fetch_repositories(batch_id: UUID) -> list[NoSQLBaseDocument]:
     return RepositoryDocument.bulk_find(batch_id=batch_id)
 
 
-def __fetch_pdfs(batch_id: str) -> list[NoSQLBaseDocument]:
+def __fetch_pdfs(batch_id: UUID) -> list[NoSQLBaseDocument]:
     return PDFDocument.bulk_find(batch_id=batch_id)
 
 
 if __name__ == "__main__":
-    batch_id = "batch_001"
-    docs = query_data_warehouse(batch_id)
+    batch_id = uuid4()
+    docs = query_data_warehouse(batch_id, True)
     print(docs)

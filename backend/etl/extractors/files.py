@@ -1,5 +1,6 @@
 import hashlib
 from pathlib import Path
+from uuid import UUID
 from docling.document_converter import DocumentConverter
 from .base import FileExtractor, ExtractionResult
 from backend.etl.domain.documents import PDFDocument
@@ -39,7 +40,11 @@ class PDFFileExtractor(FileExtractor):
         content = content.document.export_to_markdown()
 
         content = {"Content": content}
-        batch_id = kwargs.get("batch_id", "None")
+        batch_id = kwargs.get("batch_id")
+        if batch_id is None:
+            raise ValueError("batch_id is required to extract a PDF file.")
+        if isinstance(batch_id, str):
+            batch_id = UUID(batch_id)
 
         instance = self.model(
             path=path,

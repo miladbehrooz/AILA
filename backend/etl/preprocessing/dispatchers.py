@@ -24,6 +24,7 @@ from .embedding_data_handlers import (
 )
 
 from backend.etl.domain.documents import (
+    BaseDocument,
     NoSQLBaseDocument,
     RepositoryDocument,
     YoutubeDocument,
@@ -151,20 +152,23 @@ class EmbeddingDispatcher:
 if __name__ == "__main__":
     # Example usage
     from backend.etl.domain.documents import (
+        BaseDocument,
         RepositoryDocument,
         PDFDocument,
         ArticleDocument,
     )
 
-    example_data = YoutubeDocument().find()
+    # example_data = YoutubeDocument().find()
+    result = BaseDocument().bulk_delete(batch_id="20251206_103555")
+    print(result)
 
-    cleaned_doc = CleaningDispatcher.dispatch(example_data)
+    # cleaned_doc = CleaningDispatcher.dispatch(example_data)
 
     # with open("cleaned_doc.txt", "w") as f:
     #     f.write(cleaned_doc.content)
 
-    chunked_docs = ChunkingDispatcher.dispatch(cleaned_doc)
-    print(len(chunked_docs))
-    embedded_docs = EmbeddingDispatcher.dispatch(chunked_docs)
-    print(len(embedded_docs))
-    print(len(embedded_docs[0].content))
+    # chunked_docs = ChunkingDispatcher.dispatch(cleaned_doc)
+    # print(len(chunked_docs))
+    # embedded_docs = EmbeddingDispatcher.dispatch(chunked_docs)
+    # print(len(embedded_docs))
+    # print(len(embedded_docs[0].content))

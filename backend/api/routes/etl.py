@@ -74,7 +74,6 @@ def cancel_run(dag_run_id: str):
 async def upload_file(file: UploadFile = File(...)):
     uploads_dir = settings.UPLOADS_DIR
     uploads_dir.mkdir(parents=True, exist_ok=True)
-
     filename = Path(file.filename or "uploaded_file").name
     stored_name = f"{uuid4()}_{filename}"
     destination = uploads_dir / stored_name

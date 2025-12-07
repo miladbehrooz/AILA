@@ -1,5 +1,6 @@
 import requests
 import yt_dlp
+from uuid import UUID
 from .base import URLExtractor, ExtractionResult
 from backend.etl.domain.documents import YoutubeDocument
 from backend.utils import logger
@@ -32,7 +33,11 @@ class YoutubeVideoExtractor(URLExtractor):
                 "Description": metadata.get("Description"),
             }
 
-            batch_id = kwargs.get("batch_id", "None")
+            batch_id = kwargs.get("batch_id")
+            if batch_id is None:
+                raise ValueError("batch_id is required to extract a Youtube video.")
+            if isinstance(batch_id, str):
+                batch_id = UUID(batch_id)
 
             instance = self.model(
                 link=link,

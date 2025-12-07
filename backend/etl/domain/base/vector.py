@@ -7,7 +7,14 @@ import numpy as np
 from loguru import logger
 from pydantic import UUID4, BaseModel, Field
 from qdrant_client.http import exceptions
-from qdrant_client.http.models import Distance, VectorParams
+from qdrant_client.http.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    MatchValue,
+    PointIdsList,
+    VectorParams,
+)
 from qdrant_client.models import CollectionInfo, PointStruct, Record
 
 from backend.etl.domain.exceptions import ImproperlyConfigured
@@ -20,7 +27,6 @@ T = TypeVar("T", bound="VectorBaseDocument")
 
 
 class VectorBaseDocument(BaseModel, Generic[T], ABC):
-
     id: UUID = Field(default_factory=uuid.uuid4)
 
     def __eq__(self, value: object) -> bool:
@@ -144,6 +150,63 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
             next_offset = UUID(next_offset, version=4)
 
         return documents, next_offset
+
+    @classmethod
+    def bulk_delete(cls: Type[T], batch_id: UUID | str, chunk_size: int = 128) -> int:
+        try:
+            deleted = cls._bulk_delete(batch_id=batch_id, chunk_size=chunk_size)
+        except exceptions.UnexpectedResponse:
+            logger.error(
+                f"Failed to delete documents from '{cls.get_collection_name()}' for batch_id='{batch_id}'."
+            )
+            deleted = 0
+        return deleted
+
+    @classmethod
+    def _bulk_delete(cls: Type[T], batch_id: UUID | str, chunk_size: int = 128) -> int:
+        collection_name = cls.get_collection_name()
+        filter_ = Filter(
+            must=[
+                FieldCondition(
+                    key="batch_id",
+                    match=MatchValue(value=str(batch_id)),
+                )
+            ]
+        )
+        deleted = 0
+        offset: str | None = None
+
+        while True:
+            records, next_offset = connection.scroll(
+                collection_name=collection_name,
+                limit=chunk_size,
+                offset=offset,
+                with_payload=False,
+                with_vectors=False,
+                scroll_filter=filter_,
+            )
+
+            if not records:
+                break
+
+            point_ids: list[str] = []
+            for record in records:
+                record_id = getattr(record, "id", None)
+                if record_id is None:
+                    continue
+                point_ids.append(str(record_id))
+            if not point_ids:
+                break
+
+            connection.delete(
+                collection_name=collection_name,
+                points_selector=PointIdsList(points=point_ids),
+            )
+            deleted += len(point_ids)
+
+            offset = next_offset if next_offset is None else str(next_offset)
+
+        return deleted
 
     @classmethod
     def search(cls: Type[T], query_vector: list, limit: int = 10, **kwargs) -> list[T]:

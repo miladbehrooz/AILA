@@ -1,4 +1,5 @@
 from typing import TypedDict
+from uuid import UUID, uuid4
 from airflow.decorators import task
 from backend.etl.extractors.dispatcher import ExtractorDispatcher
 from backend.etl.extractors.base import ExtractionResult
@@ -12,7 +13,7 @@ class ExtractionSummary(TypedDict):
 
 
 @task
-def extract_sources(sources: list[str], batch_id: str) -> ExtractionSummary:
+def extract_sources(sources: list[str], batch_id: UUID) -> ExtractionSummary:
     dispatcher = (
         ExtractorDispatcher.build().register_pdf().register_github().register_youtube()
     )
@@ -50,7 +51,7 @@ def extract_sources(sources: list[str], batch_id: str) -> ExtractionSummary:
 
 
 def _extract_source(
-    dispatcher: ExtractorDispatcher, source: str, batch_id: str
+    dispatcher: ExtractorDispatcher, source: str, batch_id: UUID
 ) -> ExtractionResult:
     extractor = dispatcher.get_extractor(source)
 
@@ -74,5 +75,4 @@ if __name__ == "__main__":
         "backend/data/book.pdf",
         "https://github.com/PacktPublishing/LLM-Engineers-Handbook.git",
     ]
-
-    extract_sources(sources)
+    extract_sources(sources, uuid4())

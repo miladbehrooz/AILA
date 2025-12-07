@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+from uuid import UUID
 from .base import URLExtractor, ExtractionResult
 from backend.etl.domain.documents import RepositoryDocument
 from backend.utils import logger
@@ -46,7 +47,11 @@ class GithubExtractor(URLExtractor):
                     with open(os.path.join(root, file), "r", errors="ignore") as f:
                         tree[file_path] = f.read().replace(" ", "")
 
-            batch_id = kwargs.get("batch_id", "None")
+            batch_id = kwargs.get("batch_id")
+            if batch_id is None:
+                raise ValueError("batch_id is required to extract a GitHub repository.")
+            if isinstance(batch_id, str):
+                batch_id = UUID(batch_id)
 
             instance = self.model(
                 content=tree,

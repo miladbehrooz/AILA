@@ -38,6 +38,7 @@ class ArticleCleaningHandler(CleaningDataHandler):
             content=clean_text(" #### ".join(valid_content)),
             platform=data_model.platform,
             link=data_model.link,
+            batch_id=data_model.batch_id,
         )
 
 
@@ -49,6 +50,7 @@ class RepositoryCleaningHandler(CleaningDataHandler):
             platform=data_model.platform,
             name=data_model.name,
             link=data_model.link,
+            batch_id=data_model.batch_id,
         )
 
 
@@ -59,6 +61,7 @@ class YoutubeCleaningHandler(CleaningDataHandler):
             content=clean_youtube_transcript(data_model.content["Content"]),
             platform=data_model.platform,
             link=data_model.link,
+            batch_id=data_model.batch_id,
         )
 
 
@@ -69,4 +72,5 @@ class PDFCleaningHandler(CleaningDataHandler):
             content=clean_text(" #### ".join(data_model.content.values())),
             name=data_model.name,
             path=data_model.path,
+            batch_id=data_model.batch_id,
         )

@@ -1,5 +1,6 @@
 from abc import ABC
 from typing import Optional
+from uuid import UUID
 
 from pydantic import UUID4, Field
 
@@ -11,6 +12,7 @@ class Chunk(VectorBaseDocument, ABC):
     content: str
     document_id: UUID4
     metadata: dict = Field(default_factory=dict)
+    batch_id: UUID
 
 
 class ArticleChunk(Chunk):

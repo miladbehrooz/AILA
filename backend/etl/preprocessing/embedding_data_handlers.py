@@ -55,6 +55,7 @@ class ArticleEmbeddingHandler(EmbeddingDataHandler):
             platform=data_model.platform,
             link=data_model.link,
             document_id=data_model.document_id,
+            batch_id=data_model.batch_id,
             metadata={
                 "embedding_model_provider": embedding_model.provider,
                 "embedding_model_name": embedding_model.model_name,
@@ -76,6 +77,7 @@ class RepositoryEmbeddingHandler(EmbeddingDataHandler):
             name=data_model.name,
             link=data_model.link,
             document_id=data_model.document_id,
+            batch_id=data_model.batch_id,
             metadata={
                 "embedding_model_provider": embedding_model.provider,
                 "embedding_model_name": embedding_model.model_name,
@@ -96,6 +98,7 @@ class YoutubeEmbeddingHandler(EmbeddingDataHandler):
             platform=data_model.platform,
             link=data_model.link,
             document_id=data_model.document_id,
+            batch_id=data_model.batch_id,
             metadata={
                 "embedding_model_provider": embedding_model.provider,
                 "embedding_size": embedding_model.embedding_size,
@@ -115,6 +118,7 @@ class PDFEmbeddingHandler(EmbeddingDataHandler):
             name=data_model.name,
             path=data_model.path,
             document_id=data_model.document_id,
+            batch_id=data_model.batch_id,
             metadata={
                 "embedding_model_provider": embedding_model.provider,
                 "embedding_model_name": embedding_model.model_name,

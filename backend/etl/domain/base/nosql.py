@@ -50,6 +50,15 @@ class NoSQLBaseDocument(Document, Generic[T]):
             return []
 
     @classmethod
+    def bulk_delete(cls: Type[T], **filter_options) -> int:
+        try:
+            result = cls.objects(**filter_options).delete()
+            return result
+        except Exception as e:
+            logger.error(f"Failed to bulk delete documents: {e}")
+            return 0
+
+    @classmethod
     def get_collection_name(cls: Type[T]) -> str:
         if not hasattr(cls, "Settings") or not hasattr(cls.Settings, "name"):
             raise ImproperlyConfigured(
