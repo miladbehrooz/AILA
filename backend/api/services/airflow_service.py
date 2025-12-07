@@ -4,6 +4,7 @@ from typing import Any
 
 from backend.utils import logger
 from backend.etl.tasks.clean_data_warehouse import clean_data_warehouse
+from backend.etl.tasks.clean_vector_database import clean_vector_database
 from ..utils.airflow_client import (
     trigger_dag,
     get_extracted_sources_status,
@@ -78,11 +79,13 @@ def cancel_etl_run(dag_run_id: str) -> dict:
         logger.info(
             "No batch_id found for dag_run_id {}. Skipping Mongo cleanup.", dag_run_id
         )
-        # return response
+        return response
 
     deletion_summary = clean_data_warehouse(batch_id=batch_id)
+    vector_deletion_summary = clean_vector_database(batch_id=batch_id)
     response["batch_id"] = batch_id
     response["deleted_documents"] = deletion_summary
+    response["deleted_vector_documents"] = vector_deletion_summary
 
     return response
 
@@ -90,7 +93,7 @@ def cancel_etl_run(dag_run_id: str) -> dict:
 def _get_batch_id_from_dag_run(dag_run_id: str) -> str | None:
     try:
         dag_run = get_dag_run("etl_dag", dag_run_id)
-    except Exception as exc:  # pragma: no cover - defensive logging
+    except Exception as exc:
         logger.warning(
             "Unable to fetch dag_run_id {} to determine batch_id: {}", dag_run_id, exc
         )
