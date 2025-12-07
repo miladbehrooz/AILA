@@ -7,6 +7,7 @@ from .types import DataCategory
 
 class CleanedDocument(VectorBaseDocument, ABC):
     content: str
+    batch_id: str
 
 
 class CleanedArticleDocument(CleanedDocument):

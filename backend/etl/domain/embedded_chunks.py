@@ -12,6 +12,7 @@ class EmbeddedChunk(VectorBaseDocument, ABC):
     embedding: list[float] | None
     document_id: UUID4
     metadata: dict = Field(default_factory=dict)
+    batch_id: str
 
     @classmethod
     def to_context(cls, chunks: list["EmbeddedChunk"]) -> str:

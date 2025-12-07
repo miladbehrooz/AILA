@@ -11,6 +11,7 @@ class Chunk(VectorBaseDocument, ABC):
     content: str
     document_id: UUID4
     metadata: dict = Field(default_factory=dict)
+    batch_id: str
 
 
 class ArticleChunk(Chunk):
