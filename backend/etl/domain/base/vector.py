@@ -152,7 +152,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return documents, next_offset
 
     @classmethod
-    def bulk_delete(cls: Type[T], batch_id: str, chunk_size: int = 128) -> int:
+    def bulk_delete(cls: Type[T], batch_id: UUID | str, chunk_size: int = 128) -> int:
         try:
             deleted = cls._bulk_delete(batch_id=batch_id, chunk_size=chunk_size)
         except exceptions.UnexpectedResponse:
@@ -163,13 +163,13 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return deleted
 
     @classmethod
-    def _bulk_delete(cls: Type[T], batch_id: str, chunk_size: int = 128) -> int:
+    def _bulk_delete(cls: Type[T], batch_id: UUID | str, chunk_size: int = 128) -> int:
         collection_name = cls.get_collection_name()
         filter_ = Filter(
             must=[
                 FieldCondition(
                     key="batch_id",
-                    match=MatchValue(value=batch_id),
+                    match=MatchValue(value=str(batch_id)),
                 )
             ]
         )

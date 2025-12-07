@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import re
+from uuid import UUID, uuid4
 from backend.utils import logger
 from backend.etl.domain.documents import (
     ArticleDocument,
@@ -9,7 +9,7 @@ from backend.etl.domain.documents import (
 )
 
 
-def clean_data_warehouse(batch_id: str) -> dict[str, int]:
+def clean_data_warehouse(batch_id: UUID) -> dict[str, int]:
 
     result = delete_all_data(batch_id=batch_id)
     logger.info(
@@ -18,7 +18,7 @@ def clean_data_warehouse(batch_id: str) -> dict[str, int]:
     return result
 
 
-def delete_all_data(batch_id: str) -> dict[str, int]:
+def delete_all_data(batch_id: UUID) -> dict[str, int]:
 
     with ThreadPoolExecutor() as executor:
 
@@ -41,22 +41,22 @@ def delete_all_data(batch_id: str) -> dict[str, int]:
     return results
 
 
-def __delete_articles(batch_id: str) -> int:
+def __delete_articles(batch_id: UUID) -> int:
     return ArticleDocument.bulk_delete(batch_id=batch_id)
 
 
-def __delete_youtube_videos(batch_id: str) -> int:
+def __delete_youtube_videos(batch_id: UUID) -> int:
     return YoutubeDocument.bulk_delete(batch_id=batch_id)
 
 
-def __delete_repositories(batch_id: str) -> int:
+def __delete_repositories(batch_id: UUID) -> int:
     return RepositoryDocument.bulk_delete(batch_id=batch_id)
 
 
-def __delete_pdfs(batch_id: str) -> int:
+def __delete_pdfs(batch_id: UUID) -> int:
     return PDFDocument.bulk_delete(batch_id=batch_id)
 
 
 if __name__ == "__main__":
-    result = delete_all_data(batch_id="20251206_105427")
+    result = delete_all_data(batch_id=uuid4())
     print(result)

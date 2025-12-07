@@ -1,13 +1,13 @@
 from abc import ABC
 from enum import unique
-from mongoengine import StringField, DictField
+from mongoengine import StringField, DictField, UUIDField
 from backend.etl.domain.base.nosql import NoSQLBaseDocument
 from backend.etl.domain.types import DataCategory
 
 
 class BaseDocument(NoSQLBaseDocument):
     content = DictField()
-    batch_id = StringField()
+    batch_id = UUIDField(binary=False)
     meta = {"abstract": True}
 
 

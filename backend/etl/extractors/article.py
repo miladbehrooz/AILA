@@ -1,4 +1,5 @@
 from urllib.parse import urlparse
+from uuid import UUID
 from langchain_community.document_loaders import AsyncHtmlLoader
 from langchain_community.document_transformers import Html2TextTransformer
 from backend.utils import logger
@@ -34,7 +35,11 @@ class ArticleExtractor(URLExtractor):
 
         parsed_url = urlparse(link)
         platform = parsed_url.netloc
-        batch_id = kwargs.get("batch_id", "None")
+        batch_id = kwargs.get("batch_id")
+        if batch_id is None:
+            raise ValueError("batch_id is required to extract an article.")
+        if isinstance(batch_id, str):
+            batch_id = UUID(batch_id)
 
         instance = self.model(
             content=content, link=link, platform=platform, batch_id=batch_id

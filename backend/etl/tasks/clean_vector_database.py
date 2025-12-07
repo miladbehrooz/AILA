@@ -1,3 +1,4 @@
+from uuid import UUID, uuid4
 from backend.utils import logger
 from backend.etl.domain.cleaned_documents import (
     CleanedArticleDocument,
@@ -25,7 +26,7 @@ VECTOR_DOCUMENT_MODELS = (
 )
 
 
-def clean_vector_database(batch_id: str) -> dict[str, int]:
+def clean_vector_database(batch_id: UUID) -> dict[str, int]:
     summary = delete_all_vectors(batch_id=batch_id)
     logger.info(
         "Deleted vector documents for batch_id {} with summary {}",
@@ -35,7 +36,7 @@ def clean_vector_database(batch_id: str) -> dict[str, int]:
     return summary
 
 
-def delete_all_vectors(batch_id: str) -> dict[str, int]:
+def delete_all_vectors(batch_id: UUID) -> dict[str, int]:
     deletion_summary: dict[str, int] = {}
     for document_cls in VECTOR_DOCUMENT_MODELS:
         collection_name = document_cls.get_collection_name()
@@ -62,4 +63,4 @@ def delete_all_vectors(batch_id: str) -> dict[str, int]:
 
 
 if __name__ == "__main__":
-    print(delete_all_vectors(batch_id="batch_001"))
+    print(delete_all_vectors(batch_id=uuid4()))

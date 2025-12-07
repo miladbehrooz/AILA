@@ -1,5 +1,6 @@
 from abc import ABC
 from typing import Optional
+from uuid import UUID
 
 from .base.vector import VectorBaseDocument
 from .types import DataCategory
@@ -7,7 +8,7 @@ from .types import DataCategory
 
 class CleanedDocument(VectorBaseDocument, ABC):
     content: str
-    batch_id: str
+    batch_id: UUID
 
 
 class CleanedArticleDocument(CleanedDocument):

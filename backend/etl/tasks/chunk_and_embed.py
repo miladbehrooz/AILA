@@ -26,9 +26,10 @@ def chunk_and_embed_documents(
 if __name__ == "__main__":
     from backend.etl.tasks.clean import clean_documents
     from backend.etl.tasks.query_data_warehouse import query_data_warehouse
+    from uuid import uuid4
 
-    batch_id = "batch_001"
-    documents = query_data_warehouse(batch_id)
+    batch_id = uuid4()
+    documents = query_data_warehouse(batch_id, True)
     cleaned_documents = clean_documents(documents)
     embedded_chunks = chunk_and_embed_documents(cleaned_documents)
     print(f"Embedded {len(embedded_chunks)} chunks.")

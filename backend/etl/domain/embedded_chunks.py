@@ -1,6 +1,7 @@
 from abc import ABC
 
 from pydantic import UUID4, Field
+from uuid import UUID
 
 from backend.etl.domain.types import DataCategory
 
@@ -12,7 +13,7 @@ class EmbeddedChunk(VectorBaseDocument, ABC):
     embedding: list[float] | None
     document_id: UUID4
     metadata: dict = Field(default_factory=dict)
-    batch_id: str
+    batch_id: UUID
 
     @classmethod
     def to_context(cls, chunks: list["EmbeddedChunk"]) -> str:

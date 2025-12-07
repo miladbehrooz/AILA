@@ -1,4 +1,4 @@
-from datetime import datetime
+from uuid import UUID, uuid4
 import json
 from typing import Any
 
@@ -30,8 +30,8 @@ def _serialize_dag_run(data: dict) -> dict:
 
 
 def trigger_etl_dag(sources: list[str]) -> dict:
-    batch_id = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    return trigger_dag("etl_dag", {"sources": sources, "batch_id": batch_id})
+    batch_id = uuid4()
+    return trigger_dag("etl_dag", {"sources": sources, "batch_id": str(batch_id)})
 
 
 def get_etl_extracted_sources(dag_run_id: str) -> dict:
@@ -83,14 +83,14 @@ def cancel_etl_run(dag_run_id: str) -> dict:
 
     deletion_summary = clean_data_warehouse(batch_id=batch_id)
     vector_deletion_summary = clean_vector_database(batch_id=batch_id)
-    response["batch_id"] = batch_id
+    response["batch_id"] = str(batch_id)
     response["deleted_documents"] = deletion_summary
     response["deleted_vector_documents"] = vector_deletion_summary
 
     return response
 
 
-def _get_batch_id_from_dag_run(dag_run_id: str) -> str | None:
+def _get_batch_id_from_dag_run(dag_run_id: str) -> UUID | None:
     try:
         dag_run = get_dag_run("etl_dag", dag_run_id)
     except Exception as exc:
@@ -123,9 +123,15 @@ def _get_batch_id_from_dag_run(dag_run_id: str) -> str | None:
         )
         return None
 
-    batch_id = conf.get("batch_id")
-    if not batch_id:
+    batch_id_str = conf.get("batch_id")
+    if not batch_id_str:
         logger.info("dag_run_id {} conf payload lacks batch_id.", dag_run_id)
         return None
 
-    return batch_id
+    try:
+        return UUID(batch_id_str)
+    except ValueError:
+        logger.warning(
+            "dag_run_id {} batch_id {} is not a valid UUID.", dag_run_id, batch_id_str
+        )
+        return None

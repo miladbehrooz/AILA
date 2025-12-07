@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 from airflow.decorators import dag, task
 from backend.etl.tasks.extract import extract_sources
 from backend.etl.tasks.query_data_warehouse import query_data_warehouse
@@ -23,7 +24,8 @@ def etl_pipeline():
     def get_conf(**kwargs) -> dict:
         conf = kwargs["dag_run"].conf
         sources = conf.get("sources", [])
-        batch_id = conf.get("batch_id")
+        batch_id_str = conf.get("batch_id")
+        batch_id = UUID(batch_id_str) if batch_id_str else None
         logger.info(f"Fetched conf: sources={sources}, batch_id={batch_id}")
         return {"sources": sources, "batch_id": batch_id}
 
