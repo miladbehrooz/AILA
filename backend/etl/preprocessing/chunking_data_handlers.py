@@ -65,6 +65,7 @@ class ArticleChunkingHandler(ChunkingDataHandler):
                 link=data_model.link,
                 document_id=data_model.id,
                 metadata=self.metadata,
+                batch_id=data_model.batch_id,
             )
             data_models_list.append(model)
 
@@ -99,6 +100,7 @@ class RepositoryChunkingHandler(ChunkingDataHandler):
                 link=data_model.link,
                 document_id=data_model.id,
                 metadata=self.metadata,
+                batch_id=data_model.batch_id,
             )
             data_models_list.append(model)
 
@@ -132,6 +134,7 @@ class PDFChunkingHandler(ChunkingDataHandler):
                 path=data_model.path,
                 document_id=data_model.id,
                 metadata=self.metadata,
+                batch_id=data_model.batch_id,
             )
             data_models_list.append(model)
 
@@ -165,6 +168,7 @@ class YoutubeChunkingHandler(ChunkingDataHandler):
                 link=data_model.link,
                 document_id=data_model.id,
                 metadata=self.metadata,
+                batch_id=data_model.batch_id,
             )
             data_models_list.append(model)
 
