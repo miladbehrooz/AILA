@@ -16,20 +16,56 @@ BuilderFunc: TypeAlias = Callable[..., Embeddings]
 
 
 class EmbeddingFactory:
+    """
+    Factory class for creating embedding objects from different providers.
+
+    This class maintains a registry of embedding providers and their builder functions.
+    """
+
     _REGISTRY: Dict[ProviderName, BuilderFunc] = {}
 
     @staticmethod
     def _build_openai(*, model_name: str, **kw: Any) -> OpenAIEmbeddings:
+        """
+        Build an OpenAIEmbeddings object.
+
+        Args:
+            model_name (str): Name of the OpenAI model.
+            **kw: Additional keyword arguments for OpenAIEmbeddings.
+
+        Returns:
+            OpenAIEmbeddings: An instance of OpenAIEmbeddings.
+        """
         return OpenAIEmbeddings(
             model=model_name, openai_api_key=settings.OPENAI_API_KEY, **kw
         )
 
     @staticmethod
     def _build_cohere(*, model_name: str, **kw: Any) -> CohereEmbeddings:
+        """
+        Build a CohereEmbeddings object.
+
+        Args:
+            model_name (str): Name of the Cohere model.
+            **kw: Additional keyword arguments for CohereEmbeddings.
+
+        Returns:
+            CohereEmbeddings: An instance of CohereEmbeddings.
+        """
         return CohereEmbeddings(model=model_name, **kw)
 
     @staticmethod
     def _build_hf_local(*, model_name: str, **kw: Any) -> HuggingFaceEmbeddings:
+        """
+        Build a HuggingFaceEmbeddings object for local models.
+
+        Args:
+            model_name (str): Name of the HuggingFace model.
+            **kw: Additional keyword arguments for HuggingFaceEmbeddings.
+
+        Returns:
+            HuggingFaceEmbeddings: An instance of HuggingFaceEmbeddings.
+        """
         return HuggingFaceEmbeddings(
             model_name=model_name,
             encode_kwargs={"normalize_embeddings": True},
@@ -38,6 +74,16 @@ class EmbeddingFactory:
 
     @staticmethod
     def _build_hf_api(*, model_name: str, **kw: Any) -> HuggingFaceEndpointEmbeddings:
+        """
+        Build a HuggingFaceEndpointEmbeddings object for HuggingFace API models.
+
+        Args:
+            model_name (str): Name of the HuggingFace API model.
+            **kw: Additional keyword arguments for HuggingFaceEndpointEmbeddings.
+
+        Returns:
+            HuggingFaceEndpointEmbeddings: An instance of HuggingFaceEndpointEmbeddings.
+        """
         return HuggingFaceEndpointEmbeddings(model_name=model_name, **kw)
 
     _REGISTRY.update(
@@ -58,6 +104,23 @@ class EmbeddingFactory:
         config: Optional[dict[str, Any]] = None,
         **kwargs: Any,
     ) -> Embeddings:
+        """
+        Build an embedding object for the specified provider and model.
+
+        Args:
+            provider (ProviderName): The name of the embedding provider.
+            model_name (str): The model name to use for the provider.
+            config (Optional[dict[str, Any]]): Optional configuration parameters.
+            **kwargs: Additional keyword arguments for the builder function.
+
+        Returns:
+            Embeddings: An embedding object for the specified provider and model.
+
+        Raises:
+            ValueError: If the provider is unknown.
+            TypeError: If the builder function receives invalid arguments.
+            RuntimeError: For unexpected errors during initialization.
+        """
         if provider not in cls._REGISTRY:
             valid = ", ".join(cls._REGISTRY.keys())
             logger.error(f"Unknown provider '{provider}'. Valid providers: {valid}")
@@ -90,6 +153,17 @@ class EmbeddingFactory:
         *,
         overwrite: bool = False,
     ) -> None:
+        """
+        Register a new embedding provider and its builder function.
+
+        Args:
+            provider (ProviderName): The name of the provider to register.
+            builder (BuilderFunc): The builder function for the provider.
+            overwrite (bool): Whether to overwrite an existing provider. Defaults to False.
+
+        Raises:
+            ValueError: If the provider already exists and overwrite is False.
+        """
 
         if provider in cls._REGISTRY and not overwrite:
             raise ValueError(
@@ -100,5 +174,10 @@ class EmbeddingFactory:
 
     @classmethod
     def list_providers(cls) -> list[ProviderName]:
-        """Return a list of registered provider names."""
+        """
+        Return a list of registered provider names.
+
+        Returns:
+            list[ProviderName]: List of registered provider names.
+        """
         return list(cls._REGISTRY.keys())
