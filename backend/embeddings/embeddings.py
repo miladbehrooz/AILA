@@ -21,11 +21,19 @@ class EmbeddingModelSingleton(metaclass=SingletonMeta):
         self._provider = provider
         self._model_name = model_name
 
-        self._model = EmbeddingFactory.build(
-            provider=provider,
-            model_name=model_name,
-            **provider_kwargs,
-        )
+        try:
+            self._model = EmbeddingFactory.build(
+                provider=provider,
+                model_name=model_name,
+                **provider_kwargs,
+            )
+        except Exception as err:
+            logger.error(
+                f"Failed to build embedding model: provider={provider}, model_name={model_name}, error={err}"
+            )
+            raise RuntimeError(
+                f"Could not initialize embedding model for provider '{provider}' and model '{model_name}'."
+            ) from err
 
     @property
     def model_name(self) -> str:
@@ -72,9 +80,14 @@ class EmbeddingModelSingleton(metaclass=SingletonMeta):
             vecs = self._model.embed_documents(list(input_text))
             return vecs if to_list else np.asarray(vecs, dtype=np.float32)
 
+        except AttributeError as err:
+            logger.error(
+                f"Embedding model missing required method: provider={self._provider}, model_name={self._model_name}, error={err}"
+            )
+            raise
         except Exception as err:
             logger.error(
-                f"Embedding error with {self._provider=} {self._model_name=}: {err}"
+                f"Embedding error: provider={self._provider}, model_name={self._model_name}, error={err}"
             )
             return [] if to_list else np.array([], dtype=np.float32)
 
