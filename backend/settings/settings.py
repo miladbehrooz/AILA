@@ -35,16 +35,16 @@ class Settings(BaseSettings):
     )
 
     # Logging
-    LOG_FILE_PATH: str = "backend/logs/laia.log"
+    LOG_FILE_PATH: str = "backend/logs/aila.log"
     LOG_LEVEL: str = "INFO"
     LOG_ROTATION: str = "5 MB"
     LOG_RETENTION: str = "7 days"
 
     # MongoDB database
-    MONGO_DB_NAME: str = "laia"
+    MONGO_DB_NAME: str = "aila"
     MONGO_DB_HOST: str | None = "mongo:27017"
-    MONGO_DB_USERNAME: str | None = "laia"
-    MONGO_DB_PASSWORD: str | None = "laia"
+    MONGO_DB_USERNAME: str | None = "aila"
+    MONGO_DB_PASSWORD: str | None = "aila"
 
     # Qdrant database
     QDRANT_DATABASE_HOST: str = "qdrant"

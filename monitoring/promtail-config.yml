@@ -9,15 +9,15 @@ clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  - job_name: laia-log-file
+  - job_name: aila-log-file
     static_configs:
       - targets:
           - localhost
         labels:
-          job: laia
-          service: laia
+          job: aila
+          service: aila
           env: local
-          __path__: /var/log/laia/laia.log
+          __path__: /var/log/aila/aila.log
   - job_name: docker-containers
     docker_sd_configs:
       - host: unix:///var/run/docker.sock

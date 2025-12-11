@@ -1,12 +1,12 @@
-# LAIA
+# AI Learning Assitant
 
-Learning AI Assistant (LAIA) is a full-stack ETL platform that ingests heterogeneous knowledge sources (articles, PDFs, GitHub repositories, YouTube videos), cleans and chunks them, generates vector embeddings, and exposes dashboards for upload and monitoring. The stack is containerized with Docker Compose, orchestrated by Airflow, and powered by MongoDB + Qdrant for storage.
+ AI Learning Assistant (AILA) is a full-stack ETL platform that ingests heterogeneous knowledge sources (articles, PDFs, GitHub repositories, YouTube videos), cleans and chunks them, generates vector embeddings, and exposes dashboards for upload and monitoring. The stack is containerized with Docker Compose, orchestrated by Airflow, and powered by MongoDB + Qdrant for storage.
 
 ---
 
 ## Table of Contents
 
-- [LAIA](#laia)
+- [AI Learning Assitant](#ai-learning-assitant)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
   - [Architecture](#architecture)
@@ -28,7 +28,7 @@ Learning AI Assistant (LAIA) is a full-stack ETL platform that ingests heterogen
 - **Vector storage**: Embedded chunks are written to Qdrant with collection metadata for efficient semantic search.
 - **Airflow DAG**: `etl_dag` orchestrates extract → warehouse query → clean → chunk/embed → vector load, with guard rails for duplicates.
 - **Streamlit frontend**: Upload form, file tracking, DAG status stream, and historical dashboard with summaries.
-- **Observability**: Structured logging to stdout + `backend/logs/laia.log`; ready for JSON log shipper integrations.
+- **Observability**: Structured logging to stdout + `backend/logs/aila.log`; ready for JSON log shipper integrations.
 - **12-factor configuration**: Settings loaded via Pydantic from `.env`, keeping secrets out of source control.
 
 ---
@@ -67,8 +67,8 @@ Learning AI Assistant (LAIA) is a full-stack ETL platform that ingests heterogen
 ### Clone & Bootstrap
 
 ```bash
-git clone https://github.com/<your-org>/laia.git
-cd laia
+git clone https://github.com/<your-org>/aila.git
+cd aila
 cp .env.example .env   # populate with credentials, API keys, etc.
 ```
 

@@ -1,13 +1,13 @@
 services:
   mongo:
     image: mongo:latest
-    container_name: "laia_mongo"
+    container_name: "aila_mongo"
     logging:
       options:
         max-size: 1g
     environment:
-      MONGO_INITDB_ROOT_USERNAME: "laia"
-      MONGO_INITDB_ROOT_PASSWORD: "laia"
+      MONGO_INITDB_ROOT_USERNAME: "aila"
+      MONGO_INITDB_ROOT_PASSWORD: "aila"
     ports:
       - 27017:27017
     volumes:
@@ -18,7 +18,7 @@ services:
   
   qdrant:
     image: qdrant/qdrant:latest
-    container_name: "laia_qdrant"
+    container_name: "aila_qdrant"
     ports:
       - 6333:6333
       - 6334:6334
@@ -85,7 +85,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laia_backend
+    container_name: aila_backend
     depends_on:
       - mongo
       - qdrant
@@ -120,7 +120,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laia_frontend
+    container_name: aila_frontend
     depends_on:
       - backend_api
     working_dir: /opt/airflow
@@ -154,7 +154,7 @@ services:
 
   loki:
     image: grafana/loki:2.9.4
-    container_name: laia_loki
+    container_name: aila_loki
     command: -config.file=/etc/loki/loki-config.yml
     ports:
       - "3100:3100"
@@ -167,13 +167,13 @@ services:
 
   promtail:
     image: grafana/promtail:2.9.4
-    container_name: laia_promtail
+    container_name: aila_promtail
     depends_on:
       - loki
     command: -config.file=/etc/promtail/promtail-config.yml
     volumes:
       - ./monitoring/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
-      - ./backend/logs:/var/log/laia:ro
+      - ./backend/logs:/var/log/aila:ro
       - promtail_positions:/tmp
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -183,7 +183,7 @@ services:
 
   grafana:
     image: grafana/grafana:10.4.2
-    container_name: laia_grafana
+    container_name: aila_grafana
     depends_on:
       - loki
     environment:
