@@ -23,14 +23,33 @@ CleanedDocumentT = TypeVar("CleanedDocumentT", bound=CleanedDocument)
 
 
 class CleaningDataHandler(ABC, Generic[DocumentT, CleanedDocumentT]):
+    """Base interface for converting raw documents into cleaned variants.
+    Args:
+        data_model (DocumentT): The raw document to be cleaned.
+    Returns:
+        CleanedDocumentT: The cleaned document model.
+    """
 
     @abstractmethod
     def clean(self, data_model: DocumentT) -> CleanedDocumentT:
-        pass
+        """Transform a raw document into its cleaned form.
+        Args:
+            data_model (DocumentT): The raw document to be cleaned.
+        Returns:
+            CleanedDocumentT: The cleaned document model.
+        """
 
 
 class ArticleCleaningHandler(CleaningDataHandler):
+    """Cleaner specialized for article documents."""
+
     def clean(self, data_model: ArticleDocument) -> CleanedArticleDocument:
+        """Strip empty fields and normalize article content.
+        Args:
+            data_model (ArticleDocument): The raw article document.
+        Returns:
+            CleanedArticleDocument: The cleaned article document model.
+        """
         valid_content = [content for content in data_model.content.values() if content]
 
         return CleanedArticleDocument(
@@ -43,7 +62,15 @@ class ArticleCleaningHandler(CleaningDataHandler):
 
 
 class RepositoryCleaningHandler(CleaningDataHandler):
+    """Cleaner specialized for repository documents."""
+
     def clean(self, data_model: RepositoryDocument) -> CleanedRepositoryDocument:
+        """Normalize repository file contents into a single string.
+        Args:
+            data_model (RepositoryDocument): The raw repository document.
+        Returns:
+            CleanedRepositoryDocument: The cleaned repository document model.
+        """
         return CleanedRepositoryDocument(
             id=data_model.id,
             content=clean_text(" #### ".join(data_model.content.values())),
@@ -55,7 +82,15 @@ class RepositoryCleaningHandler(CleaningDataHandler):
 
 
 class YoutubeCleaningHandler(CleaningDataHandler):
+    """Cleaner specialized for YouTube transcripts."""
+
     def clean(self, data_model: YoutubeDocument) -> CleanedYoutubeDocument:
+        """Convert the transcript into plain text.
+        Args:
+            data_model (YoutubeDocument): The raw YouTube document.
+        Returns:
+            CleanedYoutubeDocument: The cleaned YouTube document model.
+        """
         return CleanedYoutubeDocument(
             id=data_model.id,
             content=clean_youtube_transcript(data_model.content["Content"]),
@@ -66,7 +101,15 @@ class YoutubeCleaningHandler(CleaningDataHandler):
 
 
 class PDFCleaningHandler(CleaningDataHandler):
+    """Cleaner specialized for PDF documents."""
+
     def clean(self, data_model: PDFDocument) -> CleanedPDFDocument:
+        """Normalize PDF content from the converter output.
+        Args:
+            data_model (PDFDocument): The raw PDF document.
+        Returns:
+            CleanedPDFDocument: The cleaned PDF document model.
+        """
         return CleanedPDFDocument(
             id=data_model.id,
             content=clean_text(" #### ".join(data_model.content.values())),

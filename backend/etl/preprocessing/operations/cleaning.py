@@ -2,6 +2,12 @@ import re
 
 
 def clean_text(text: str) -> str:
+    """Normalize generic text for downstream chunking.
+    Args:
+        text (str): Raw text to clean.
+    Returns:
+        str: Cleaned text.
+    """
     # Replace unwanted characters but keep \n
     text = re.sub(r"[^\w\s.,!?]", " ", text)
 
@@ -17,6 +23,12 @@ def clean_text(text: str) -> str:
 
 
 def clean_youtube_transcript(transcript: str) -> str:
+    """Convert WebVTT transcripts into plain text paragraphs.
+    Args:
+        transcript (str): Raw YouTube transcript in WebVTT format.
+    Returns:
+        str: Cleaned transcript text.
+    """
     # Remove the WEBVTT header block
     transcript = re.sub(r"^WEBVTT.*?\n", "", transcript, flags=re.DOTALL)
 
@@ -57,6 +69,12 @@ def clean_youtube_transcript(transcript: str) -> str:
 
 
 def _deduplicate_lines(lines):
+    """Collapse repeated adjacent lines inside a transcript block.
+    Args:
+        lines (list[str]): Lines within a transcript block.
+    Returns:
+        list[str]: Deduplicated lines.
+    """
     deduped = []
     for line in lines:
         if not deduped or line != deduped[-1]:

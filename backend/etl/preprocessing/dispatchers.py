@@ -35,8 +35,11 @@ from backend.utils import logger
 
 
 class CleaningHandlerFactory:
+    """Factory that selects cleaning handlers per document category."""
+
     @staticmethod
     def create_handler(data_category: DataCategory) -> CleaningDataHandler:
+        """Return a cleaning handler suited for the category."""
         if data_category == DataCategory.ARTICLES:
             return ArticleCleaningHandler()
         elif data_category == DataCategory.YOUTUBEVIDEOS:
@@ -50,10 +53,21 @@ class CleaningHandlerFactory:
 
 
 class CleaningDispatcher:
+    """Dispatch cleaning operations to the correct handler.
+    Attributes:
+        factory (CleaningHandlerFactory): Factory to create cleaning handlers.
+    """
+
     factory = CleaningHandlerFactory()
 
     @classmethod
     def dispatch(cls, data_model: NoSQLBaseDocument) -> VectorBaseDocument:
+        """Clean the provided raw document using the appropriate handler.
+        Args:
+            data_model (NoSQLBaseDocument): The raw document to clean.
+        Returns:
+            VectorBaseDocument: The cleaned document model.
+        """
         data_category = DataCategory(data_model.get_collection_name())
         handler = cls.factory.create_handler(data_category)
         clean_model = handler.clean(data_model)
@@ -68,8 +82,16 @@ class CleaningDispatcher:
 
 
 class ChunkingHandlerFactory:
+    """Factory that selects chunking handlers per document category."""
+
     @staticmethod
     def create_handler(data_category: DataCategory) -> ChunkingDataHandler:
+        """Return a chunking handler suited for the category.
+        Args:
+            data_category (DataCategory): The category of the data to chunk.
+        Returns:
+            ChunkingDataHandler: The appropriate chunking handler.
+        """
         if data_category == DataCategory.ARTICLES:
             return ArticleChunkingHandler()
         elif data_category == DataCategory.YOUTUBEVIDEOS:
@@ -83,10 +105,21 @@ class ChunkingHandlerFactory:
 
 
 class ChunkingDispatcher:
+    """Dispatch chunking operations to the correct handler.
+    Attributes:
+        factory (ChunkingHandlerFactory): Factory to create chunking handlers.
+    """
+
     factory = ChunkingHandlerFactory
 
     @classmethod
     def dispatch(cls, data_model: VectorBaseDocument) -> list[VectorBaseDocument]:
+        """Chunk the cleaned document using the registered handler.
+        Args:
+            data_model (VectorBaseDocument): The cleaned document to chunk.
+        Returns:
+            list[VectorBaseDocument]: List of chunk models derived from the document.
+        """
         data_category = data_model.get_category()
         handler = cls.factory.create_handler(data_category)
         chunk_models = handler.chunk(data_model)
@@ -101,8 +134,16 @@ class ChunkingDispatcher:
 
 
 class EmbeddingHandlerFactory:
+    """Factory that selects embedding handlers per document category."""
+
     @staticmethod
     def create_handler(data_category: DataCategory) -> EmbeddingDataHandler:
+        """Return an embedding handler suited for the category.
+        Args:
+            data_category (DataCategory): The category of the data to embed.
+            Returns:
+            EmbeddingDataHandler: The appropriate embedding handler.
+        """
 
         if data_category == DataCategory.ARTICLES:
             return ArticleEmbeddingHandler()
@@ -117,12 +158,24 @@ class EmbeddingHandlerFactory:
 
 
 class EmbeddingDispatcher:
+    """Dispatch embedding operations to the correct handler.
+    Attributes:
+        factory (EmbeddingHandlerFactory): Factory to create embedding handlers.
+    """
+
     factory = EmbeddingHandlerFactory
 
     @classmethod
     def dispatch(
         cls, data_model: VectorBaseDocument | list[VectorBaseDocument]
     ) -> VectorBaseDocument | list[VectorBaseDocument]:
+        """Embed one or many chunks while enforcing a consistent category.
+        Args:
+            data_model (VectorBaseDocument | list[VectorBaseDocument]): The chunk(s) to
+                embed.
+        Returns:
+            VectorBaseDocument | list[VectorBaseDocument]: The embedded chunk model(s).
+        """
         is_list = isinstance(data_model, list)
         if not is_list:
             data_model = [data_model]
