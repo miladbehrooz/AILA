@@ -67,7 +67,7 @@
 ### Clone & Bootstrap
 
 ```bash
-git clone https://github.com/<your-org>/aila.git
+git clone https://github.com/miladbehrooz/aila.git
 cd aila
 cp .env.example .env   # populate with credentials, API keys, etc.
 ```
