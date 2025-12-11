@@ -5,7 +5,7 @@ from uuid import UUID
 
 import numpy as np
 from loguru import logger
-from pydantic import UUID4, BaseModel, Field
+from pydantic import BaseModel, Field
 from qdrant_client.http import exceptions
 from qdrant_client.http.models import (
     Distance,

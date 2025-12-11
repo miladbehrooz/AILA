@@ -285,7 +285,7 @@ def _handle_cancel() -> None:
 
     logger.info("Cancel button clicked for dag_run_id={}", dag_run_id)
     try:
-        response = cancel_etl_run(dag_run_id)
+        cancel_etl_run(dag_run_id)
     except requests.HTTPError as exc:
         detail = exc.response.text if exc.response is not None else str(exc)
         show_technical_issue(

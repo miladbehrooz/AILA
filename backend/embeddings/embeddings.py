@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 
 from backend.utils import logger
 from backend.utils.singleton import SingletonMeta
-from .base import EmbeddingFactory
+from .base import EmbeddingFactory, ProviderName
 from backend.settings.settings import settings
 
 
@@ -22,8 +22,8 @@ class EmbeddingModelSingleton(metaclass=SingletonMeta):
 
     def __init__(
         self,
-        provider: "ProviderName" = settings.TEXT_EMBEDDING_PROVIDER,  # type: ignore
-        model_name: str = settings.TEXT_EMBEDDING_MODEL_NAME,  # type: ignore
+        provider: ProviderName = settings.TEXT_EMBEDDING_PROVIDER,
+        model_name: str = settings.TEXT_EMBEDDING_MODEL_NAME,
         **provider_kwargs: Any,
     ) -> None:
         """

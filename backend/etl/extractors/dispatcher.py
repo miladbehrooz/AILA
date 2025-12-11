@@ -6,7 +6,7 @@ from .base import BaseExtractor, URLExtractor, FileExtractor
 from .article import ArticleExtractor
 from .youtube import YoutubeVideoExtractor
 from .github import GithubExtractor
-from .files import PDFFileExtractor, WordFileExtractor, TextFileExtractor
+from .files import PDFFileExtractor
 
 
 # TODO: introduce wrapper function for register different extractors like youtube, article and ...

@@ -1,5 +1,4 @@
 import uuid
-from abc import ABC
 from mongoengine import DateTimeField, Document, UUIDField
 from datetime import datetime
 from typing import Optional, Type, TypeVar, Generic

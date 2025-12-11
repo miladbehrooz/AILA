@@ -67,7 +67,7 @@ def fetch_all_data(batch_id: UUID) -> dict[str, list[NoSQLBaseDocument]]:
             query_name = future_to_query[future]
             try:
                 results[query_name] = future.result()
-            except Exception as exc:
+            except Exception:
                 logger.exception(f"{query_name} request failed.")
 
                 results[query_name] = []

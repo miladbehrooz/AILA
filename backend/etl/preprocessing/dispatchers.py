@@ -1,4 +1,3 @@
-from pydantic.type_adapter import P
 
 from .cleaning_data_handlers import (
     CleaningDataHandler,
@@ -26,8 +25,6 @@ from .embedding_data_handlers import (
 from backend.etl.domain.documents import (
     BaseDocument,
     NoSQLBaseDocument,
-    RepositoryDocument,
-    YoutubeDocument,
 )
 from backend.etl.domain.cleaned_documents import VectorBaseDocument
 from backend.etl.domain.types import DataCategory
@@ -206,9 +203,6 @@ if __name__ == "__main__":
     # Example usage
     from backend.etl.domain.documents import (
         BaseDocument,
-        RepositoryDocument,
-        PDFDocument,
-        ArticleDocument,
     )
 
     # example_data = YoutubeDocument().find()

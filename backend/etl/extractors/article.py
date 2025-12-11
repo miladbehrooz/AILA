@@ -4,7 +4,6 @@ from langchain_community.document_loaders import AsyncHtmlLoader
 from langchain_community.document_transformers import Html2TextTransformer
 from backend.utils import logger
 from backend.etl.domain.documents import ArticleDocument
-from backend.etl.domain.documents import ArticleDocument
 from .base import URLExtractor, ExtractionResult
 
 

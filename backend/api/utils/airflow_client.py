@@ -35,7 +35,7 @@ def trigger_dag(dag_id: str, conf: dict) -> dict:
             "state": data["state"],
         }
 
-    except requests.HTTPError as e:
+    except requests.HTTPError:
         raise HTTPException(
             status_code=response.status_code,
             detail=f"Failed to trigger DAG: {response.text}",
@@ -82,7 +82,7 @@ def get_extracted_sources_status(dag_id: str, dag_run_id: str) -> dict:
             **extraction_summary,
         }
 
-    except requests.HTTPError as e:
+    except requests.HTTPError:
         raise HTTPException(
             status_code=response.status_code,
             detail=f"Failed to fetch DAG run status: {response.text}",
