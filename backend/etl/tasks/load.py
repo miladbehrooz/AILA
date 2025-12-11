@@ -9,6 +9,14 @@ from backend.utils import logger
 def load_to_vector_db(
     documents: Annotated[list, "documents"],
 ) -> Annotated[bool, "successful"]:
+    """Insert embedded chunks into the vector database per document type.
+
+    Args:
+        documents (list): Embedded chunk models to be persisted.
+
+    Returns:
+        bool: True when all chunks were inserted successfully, False otherwise.
+    """
     logger.info(f"Loading {len(documents)} documents into the vector database.")
 
     grouped_documents = VectorBaseDocument.group_by_class(documents)

@@ -7,6 +7,13 @@ from backend.utils import logger
 
 
 class ExtractionSummary(TypedDict):
+    """Summary of extraction outcomes grouped by status.
+    Attributes:
+        new_sources (list[str]): List of sources that were newly inserted.
+        duplicate_sources (list[str]): List of sources that were found to be duplicates.
+        failed_sources (list[str]): List of sources for which extraction failed.
+    """
+
     new_sources: list[str]
     duplicate_sources: list[str]
     failed_sources: list[str]
@@ -14,6 +21,16 @@ class ExtractionSummary(TypedDict):
 
 @task
 def extract_sources(sources: list[str], batch_id: UUID) -> ExtractionSummary:
+    """Extract each requested source with the appropriate extractor.
+
+    Args:
+        sources (list[str]): URLs or file paths to ingest.
+        batch_id (UUID): Identifier assigned to the extraction batch.
+
+    Returns:
+        ExtractionSummary: Aggregated statistics of inserted, duplicate, and failed
+            sources.
+    """
     dispatcher = (
         ExtractorDispatcher.build().register_pdf().register_github().register_youtube()
     )
@@ -53,6 +70,16 @@ def extract_sources(sources: list[str], batch_id: UUID) -> ExtractionSummary:
 def _extract_source(
     dispatcher: ExtractorDispatcher, source: str, batch_id: UUID
 ) -> ExtractionResult:
+    """Run a single extractor and normalize its return type.
+
+    Args:
+        dispatcher (ExtractorDispatcher): Dispatcher with registered extractors.
+        source (str): URL or path pointing to the source to ingest.
+        batch_id (UUID): Identifier assigned to the extraction batch.
+
+    Returns:
+        ExtractionResult: Normalized status code from the extractor.
+    """
     extractor = dispatcher.get_extractor(source)
 
     try:

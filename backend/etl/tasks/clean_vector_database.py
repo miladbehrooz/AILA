@@ -27,6 +27,14 @@ VECTOR_DOCUMENT_MODELS = (
 
 
 def clean_vector_database(batch_id: UUID) -> dict[str, int]:
+    """Remove every vector document for a batch from Mongo and Qdrant.
+
+    Args:
+        batch_id (UUID): Identifier of the batch whose vectors should be deleted.
+
+    Returns:
+        dict[str, int]: Per-collection deletion counts.
+    """
     summary = delete_all_vectors(batch_id=batch_id)
     logger.info(
         "Deleted vector documents for batch_id {} with summary {}",
@@ -37,6 +45,14 @@ def clean_vector_database(batch_id: UUID) -> dict[str, int]:
 
 
 def delete_all_vectors(batch_id: UUID) -> dict[str, int]:
+    """Delete batch-specific documents from each vector-backed collection.
+
+    Args:
+        batch_id (UUID): Batch identifier applied to the stored vectors.
+
+    Returns:
+        dict[str, int]: Per collection count of deleted items.
+    """
     deletion_summary: dict[str, int] = {}
     for document_cls in VECTOR_DOCUMENT_MODELS:
         collection_name = document_cls.get_collection_name()

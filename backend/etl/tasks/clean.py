@@ -7,6 +7,14 @@ from airflow.decorators import task
 def clean_documents(
     documents: Annotated[list, "raw_documents"],
 ) -> Annotated[list, "cleaned_documents"]:
+    """Apply the cleaning dispatcher to each raw document.
+
+    Args:
+        documents (list): Raw documents fetched from the data warehouse.
+
+    Returns:
+        list: Cleaned document models that are ready for chunking.
+    """
     cleaned_documents = []
     for document in documents:
         cleaned_document = CleaningDispatcher.dispatch(document)
