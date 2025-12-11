@@ -7,9 +7,24 @@ from backend.utils import logger
 
 
 class YoutubeVideoExtractor(URLExtractor):
+    """Extractor that downloads video transcripts from YouTube.
+    Attributes:
+        model (type): The document model associated with YouTube videos.
+    x"""
+
     model = YoutubeDocument
 
     def extract(self, link: str, **kwargs) -> bool:
+        """Fetch the transcript and metadata for a YouTube video.
+        Args:
+            link (str): URL of the YouTube video to extract.
+            **kwargs: Additional keyword arguments. Must include `batch_id`.
+        Returns:
+            ExtractionResult: INSERTED when a new video is stored, DUPLICATE when a
+                video with the same link already exists, or FAILED if extraction fails.
+        Raises:
+            ValueError: If `batch_id` is missing or cannot be coerced into a UUID.
+        """
         old_model = self.model.find(link=link)
         if old_model is not None:
             logger.info(f"Youtube video already exists in the database: {link}")
@@ -55,6 +70,14 @@ class YoutubeVideoExtractor(URLExtractor):
     # TODO: add support for multiple languages
     @staticmethod
     def fetch_youtube_transcript(video_url, lang="en"):
+        """Load subtitles for the video and return the transcript plus metadata.
+        Args:
+            video_url (str): URL of the YouTube video.
+            lang (str): Language code for the desired subtitles (default is "en").
+        Returns:
+            tuple[str | None, dict]: Transcript text (or None if not found) and
+            video metadata dictionary.
+        """
 
         ydl_opts = {
             "skip_download": True,
