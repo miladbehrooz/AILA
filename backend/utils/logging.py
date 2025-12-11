@@ -3,7 +3,11 @@ from loguru import logger
 from backend.settings import settings
 
 
-def setup_logger():
+def setup_logger() -> logger:
+    """Configure the global Loguru logger for console and file output.
+    Returns:
+        logger: Configured Loguru logger instance.
+    """
 
     logger.remove()
     logger.add(
