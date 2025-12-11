@@ -18,10 +18,20 @@ from backend.utils import logger
     catchup=False,
     tags=["etl"],
 )
-def etl_pipeline():
+def etl_pipeline() -> None:
+    """Define the ETL Airflow DAG that orchestrates the full pipeline."""
 
     @task
     def get_conf(**kwargs) -> dict:
+        """Extract runtime configuration from the Airflow DAG run context.
+
+        Args:
+            **kwargs: Task context provided by Airflow.
+
+        Returns:
+            dict: Mapping with `sources` and `batch_id` extracted from the DAG
+                configuration payload.
+        """
         conf = kwargs["dag_run"].conf
         sources = conf.get("sources", [])
         batch_id_str = conf.get("batch_id")
@@ -35,6 +45,14 @@ def etl_pipeline():
 
     @task.short_circuit
     def check_new_extraction(sources: list) -> bool:
+        """Guard the downstream flow based on whether new sources were extracted.
+
+        Args:
+            sources (list): Extracted source identifiers.
+
+        Returns:
+            bool: True when there is at least one new source to process.
+        """
         if sources:
             logger.info("No new data extracted. Skipping the rest of the pipeline.")
         return bool(sources)
