@@ -4,10 +4,19 @@ from backend.settings.settings import settings
 
 
 class MongoDatabaseConnector:
+    """Manage a singleton connection to the Mongo database.
+    Attributes:
+        _connected (bool): Indicates if a connection has been established.
+    """
+
     _connected: bool = False
 
     @classmethod
     def connect(cls):
+        """Establish a Mongo connection if one doesn't already exist.
+        Raises:
+            Exception: If the connection to MongoDB fails.
+        """
         if not cls._connected:
             try:
                 connect(

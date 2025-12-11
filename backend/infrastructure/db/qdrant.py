@@ -5,9 +5,18 @@ from backend.utils import logger
 
 
 class QdrantDatabaseConnector:
+    """Create a singleton Qdrant client for vector operations.
+    Attributes:
+        _instance (QdrantClient | None): Singleton instance of the Qdrant client
+    """
+
     _instance: QdrantClient | None = None
 
     def __new__(cls, *args, **kwargs) -> QdrantClient:
+        """Instantiate (or reuse) the Qdrant client.
+        Returns:
+            QdrantClient: Singleton Qdrant client instance.
+        """
         if cls._instance is None:
             try:
                 cls._instance = QdrantClient(
