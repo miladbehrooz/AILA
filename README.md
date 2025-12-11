@@ -1,6 +1,6 @@
 # AI Learning Assitant
 
-AI Learning Assistant (AILA) is being built in phases. **Phase 1, which you are currently viewing, delivers the production-ready Full-Stack ETL pipeline** that ingests heterogeneous knowledge sources (articles, PDFs, GitHub repositories, YouTube videos), cleans and chunks them, and generates vector embeddings. Later phases focus on Retrieval-Augmented Generation (RAG) workflows and agentic learning experiences built on top of this pipeline.
+AI Learning Assistant (AILA) is being built in phases. **Phase 1, which you are currently viewing, delivers the production-ready full-stack ETL pipeline** that ingests heterogeneous knowledge sources (articles, PDFs, GitHub repositories, YouTube videos), cleans and chunks them, and generates vector embeddings. Later phases focus on Retrieval-Augmented Generation (RAG) and agentic workflows built on top of this pipeline.
 
 ---
 
