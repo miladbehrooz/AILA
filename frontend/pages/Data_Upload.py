@@ -23,6 +23,7 @@ CANCEL_MESSAGE_TYPE_KEY = "cancel_run_message_type"
 
 
 def render_page() -> None:
+    """Render the Data Upload flow, including form, submission, and summary."""
     logger.debug("Rendering Data Upload page")
     st.title("Data Upload")
     st.caption(
@@ -57,6 +58,7 @@ def render_page() -> None:
 
 
 def _render_source_inputs() -> None:
+    """Render the dynamic list of source inputs."""
     fields = source_fields.get_source_fields()
     for idx, field in enumerate(fields):
         field_id = field["id"]
@@ -104,6 +106,7 @@ def _render_source_inputs() -> None:
 
 
 def _handle_submission() -> None:
+    """Validate the inputs and trigger the backend ETL pipeline."""
     logger.info("Handling data upload submission")
     sources, errors = _collect_sources()
     logger.debug(
@@ -148,6 +151,10 @@ def _handle_submission() -> None:
         )
 
         def _update_state(state: str) -> None:
+            """Update the status component when Airflow state changes.
+            Args:
+                state (str): Current state of the DAG run.
+            """
             status_box.update(
                 label="Data upload is running...",
                 state="running",
@@ -234,6 +241,10 @@ def _handle_submission() -> None:
 
 
 def _collect_sources() -> tuple[list[str], list[str]]:
+    """Collect sources from the UI and upload files as needed.
+    Returns:
+        tuple[list[str], list[str]]: Collected source strings and validation errors.
+    """
     collected_sources: list[str] = []
     errors: list[str] = []
 
@@ -263,6 +274,7 @@ def _collect_sources() -> tuple[list[str], list[str]]:
 
 
 def _handle_cancel() -> None:
+    """Cancel the active DAG run if one is being tracked."""
     dag_run_id = st.session_state.get(ACTIVE_DAG_RUN_KEY)
     if not dag_run_id:
         st.session_state[CANCEL_MESSAGE_KEY] = (
@@ -300,6 +312,10 @@ def _handle_cancel() -> None:
 
 
 def _render_summary(summary_data: dict[str, Any]) -> None:
+    """Render the summary messages for new, duplicate, and failed sources.
+    Args:
+        summary_data (dict[str, Any]): Extraction summary data.
+    """
     if summary_data.get("new_sources"):
         new_sources = source_fields.display_names_for_sources(
             summary_data["new_sources"]

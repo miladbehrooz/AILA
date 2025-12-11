@@ -12,6 +12,10 @@ from loguru import logger
 
 @lru_cache(maxsize=1)
 def get_api_base_url() -> str:
+    """Return the sanitized base URL for the backend API.
+    Returns:
+        str: Backend API base URL without trailing slash.
+    """
     base_url = settings.DEFUALT_API_BASE_URL.strip()
     if not base_url:
         raise ValueError("DEFUALT_API_BASE_URL environment variable is not set.")
@@ -21,12 +25,28 @@ def get_api_base_url() -> str:
 
 
 def _build_url(path: str) -> str:
+    """Compose a backend URL by appending the given path to the base.
+
+    Args:
+        path (str): API path, e.g. `/etl/runs`.
+
+    Returns:
+        str: Fully qualified URL.
+    """
     url = f"{get_api_base_url()}{path}"
     logger.debug("Resolved backend endpoint {}", url)
     return url
 
 
 def trigger_etl(sources: list[str]) -> dict[str, Any]:
+    """Trigger the backend ETL run for the provided sources.
+
+    Args:
+        sources (list[str]): URLs or file paths to ingest.
+
+    Returns:
+        dict[str, Any]: Backend response describing the scheduled DAG run.
+    """
     logger.info(f"Triggering ETL run for {len(sources)} source(s)")
     try:
         response = requests.post(
@@ -49,6 +69,14 @@ def trigger_etl(sources: list[str]) -> dict[str, Any]:
 
 
 def stream_etl_states(dag_run_id: str) -> Generator[str, None, None]:
+    """Yield state updates for the DAG run as they arrive.
+
+    Args:
+        dag_run_id (str): Identifier of the DAG run to watch.
+
+    Yields:
+        str: Lowercased Airflow state whenever it changes.
+    """
     logger.info("Streaming ETL states for dag_run_id={}", dag_run_id)
     try:
         with requests.get(
@@ -86,6 +114,16 @@ def stream_etl_states(dag_run_id: str) -> Generator[str, None, None]:
 def wait_for_dag_completion(
     dag_run_id: str, on_state_update: Callable[[str], None] | None = None
 ) -> str | None:
+    """Block until the DAG run reaches a terminal state.
+
+    Args:
+        dag_run_id (str): Identifier of the DAG run to monitor.
+        on_state_update (Callable[[str], None] | None): Optional callback invoked on
+            every intermediate state.
+
+    Returns:
+        str | None: Final state when available, otherwise None if the stream ended.
+    """
     logger.info("Waiting for DAG run {} to reach a terminal state", dag_run_id)
     for state in stream_etl_states(dag_run_id):
         logger.debug("DAG run {} reported state {}", dag_run_id, state)
@@ -100,6 +138,14 @@ def wait_for_dag_completion(
 
 
 def _fetch_extraction_summary_once(dag_run_id: str) -> dict[str, Any] | None:
+    """Fetch the extraction summary exactly once.
+
+    Args:
+        dag_run_id (str): Identifier of the DAG run whose summary is requested.
+
+    Returns:
+        dict[str, Any] | None: Summary payload or None when still pending.
+    """
     url = _build_url(f"/etl/runs/{dag_run_id}/extracted-sources")
     logger.debug("Fetching extraction summary from {}", url)
     try:
@@ -127,6 +173,16 @@ def _fetch_extraction_summary_once(dag_run_id: str) -> dict[str, Any] | None:
 def fetch_extraction_summary(
     dag_run_id: str, max_attempts: int = 10, delay_seconds: float = 3.0
 ) -> dict[str, Any] | None:
+    """Poll the backend until an extraction summary becomes available.
+
+    Args:
+        dag_run_id (str): Identifier of the DAG run whose summary is requested.
+        max_attempts (int, optional): Maximum number of polling attempts.
+        delay_seconds (float, optional): Delay between attempts in seconds.
+
+    Returns:
+        dict[str, Any] | None: Summary payload or None when attempts are exhausted.
+    """
     logger.info(
         "Polling extraction summary for dag_run_id={} (attempts={}, delay={}s)",
         dag_run_id,
@@ -176,17 +232,35 @@ def fetch_extraction_summary(
 
 
 def fetch_extraction_summary_once(dag_run_id: str) -> dict[str, Any] | None:
+    """Public proxy for a single extraction summary request.
+
+    Args:
+        dag_run_id (str): Identifier of the DAG run whose summary is requested.
+
+    Returns:
+        dict[str, Any] | None: Summary payload or None when still pending.
+    """
     return _fetch_extraction_summary_once(dag_run_id)
 
 
 @dataclass(slots=True)
 class UploadedFilePayload:
+    """Payload used when uploading a file to the backend API."""
+
     name: str
     content: bytes
     mime_type: str = "application/pdf"
 
 
 def upload_source_file(payload: UploadedFilePayload) -> str:
+    """Upload a local file to the backend and return its stored path.
+
+    Args:
+        payload (UploadedFilePayload): Payload containing file bytes and metadata.
+
+    Returns:
+        str: Relative path assigned by the backend.
+    """
     logger.info(
         "Uploading source file '{}' ({} bytes)",
         payload.name,
@@ -226,6 +300,15 @@ def upload_source_file(payload: UploadedFilePayload) -> str:
 
 
 def list_etl_runs(limit: int = 25, offset: int = 0) -> dict[str, Any]:
+    """List ETL runs using the backend API.
+
+    Args:
+        limit (int, optional): Maximum number of runs to fetch. Defaults to 25.
+        offset (int, optional): Pagination offset. Defaults to 0.
+
+    Returns:
+        dict[str, Any]: Backend response containing the paginated runs.
+    """
     logger.debug("Listing ETL runs with limit={} offset={}", limit, offset)
     try:
         response = requests.get(
@@ -251,6 +334,14 @@ def list_etl_runs(limit: int = 25, offset: int = 0) -> dict[str, Any]:
 
 
 def get_etl_run(dag_run_id: str) -> dict[str, Any]:
+    """Fetch metadata for a specific ETL run.
+
+    Args:
+        dag_run_id (str): DAG run identifier to retrieve.
+
+    Returns:
+        dict[str, Any]: Backend response describing the run.
+    """
     logger.debug("Fetching ETL run dag_run_id={}", dag_run_id)
     try:
         response = requests.get(
@@ -268,6 +359,14 @@ def get_etl_run(dag_run_id: str) -> dict[str, Any]:
 
 
 def cancel_etl_run(dag_run_id: str) -> dict[str, Any]:
+    """Request cancellation for the provided ETL run.
+
+    Args:
+        dag_run_id (str): Identifier of the DAG run to cancel.
+
+    Returns:
+        dict[str, Any]: Backend response acknowledging the cancellation.
+    """
     logger.info("Requesting cancellation for dag_run_id={}", dag_run_id)
     try:
         response = requests.delete(

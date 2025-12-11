@@ -5,6 +5,7 @@ from loguru import logger
 
 
 def main() -> None:
+    """Render the landing page layout for the Streamlit app."""
     st.set_page_config(page_title="LAIA", layout="wide")
     logger.info("LAIA console landing page rendered")
     st.title("LAIA Console")
