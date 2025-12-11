@@ -17,6 +17,14 @@ from ..utils.airflow_client import (
 
 
 def _serialize_dag_run(data: dict) -> dict:
+    """Map an Airflow DAG run payload into the API schema.
+
+    Args:
+        data (dict): Raw run data returned by Airflow.
+
+    Returns:
+        dict: Normalized DAG run representation.
+    """
     return {
         "dag_id": data.get("dag_id"),
         "dag_run_id": data.get("dag_run_id"),
@@ -30,19 +38,53 @@ def _serialize_dag_run(data: dict) -> dict:
 
 
 def trigger_etl_dag(sources: list[str]) -> dict:
+    """Trigger the ETL DAG with the provided sources.
+
+    Args:
+        sources (list[str]): URLs or file paths to ingest.
+
+    Returns:
+        dict: Airflow API response describing the scheduled run.
+    """
     batch_id = uuid4()
     return trigger_dag("etl_dag", {"sources": sources, "batch_id": str(batch_id)})
 
 
 def get_etl_extracted_sources(dag_run_id: str) -> dict:
+    """Fetch the extraction summary for a DAG run.
+
+    Args:
+        dag_run_id (str): Airflow DAG run identifier.
+
+    Returns:
+        dict: Extraction summary merged with DAG metadata.
+    """
     return get_extracted_sources_status("etl_dag", dag_run_id)
 
 
 def get_etl_status_stream(dag_run_id: str, poll_interval: int = 5) -> dict:
+    """Stream ETL DAG status updates for a run.
+
+    Args:
+        dag_run_id (str): Airflow DAG run identifier.
+        poll_interval (int, optional): Seconds between poll requests. Defaults to 5.
+
+    Returns:
+        dict: Generator that yields SSE-formatted state updates.
+    """
     return get_dag_status_stream("etl_dag", dag_run_id, poll_interval)
 
 
 def list_etl_runs(limit: int = 25, offset: int = 0) -> dict:
+    """List ETL DAG runs with pagination.
+
+    Args:
+        limit (int, optional): Max number of runs per page. Defaults to 25.
+        offset (int, optional): Pagination offset. Defaults to 0.
+
+    Returns:
+        dict: Paginated response that includes normalized DAG runs.
+    """
     response = list_dag_runs("etl_dag", limit=limit, offset=offset)
     dag_runs = [_serialize_dag_run(run) for run in response.get("dag_runs", [])]
     return {
@@ -53,11 +95,29 @@ def list_etl_runs(limit: int = 25, offset: int = 0) -> dict:
 
 
 def get_etl_run(dag_run_id: str) -> dict:
+    """Get ETL DAG run metadata.
+
+    Args:
+        dag_run_id (str): Airflow DAG run identifier.
+
+    Returns:
+        dict: Normalized DAG run representation.
+    """
     run = get_dag_run("etl_dag", dag_run_id)
     return _serialize_dag_run(run)
 
 
 def get_etl_task_logs(dag_run_id: str, task_id: str, try_number: int = 1) -> dict:
+    """Fetch task logs for a DAG run.
+
+    Args:
+        dag_run_id (str): Airflow DAG run identifier.
+        task_id (str): Task identifier inside the DAG.
+        try_number (int, optional): Attempt number to inspect. Defaults to 1.
+
+    Returns:
+        dict: Task log payload with metadata.
+    """
     log_payload = get_task_log("etl_dag", dag_run_id, task_id, try_number)
     return {
         "dag_id": "etl_dag",
@@ -69,6 +129,14 @@ def get_etl_task_logs(dag_run_id: str, task_id: str, try_number: int = 1) -> dic
 
 
 def cancel_etl_run(dag_run_id: str) -> dict:
+    """Cancel a DAG run and clean up related data.
+
+    Args:
+        dag_run_id (str): Airflow DAG run identifier.
+
+    Returns:
+        dict: Cancellation payload including cleanup summaries.
+    """
     batch_id = _get_batch_id_from_dag_run(dag_run_id)
     logger.info(
         "Cancelling ETL dag_run_id {} with associated batch_id {}", dag_run_id, batch_id
@@ -91,6 +159,14 @@ def cancel_etl_run(dag_run_id: str) -> dict:
 
 
 def _get_batch_id_from_dag_run(dag_run_id: str) -> UUID | None:
+    """Extract the batch_id from the DAG run conf payload.
+
+    Args:
+        dag_run_id (str): Airflow DAG run identifier.
+
+    Returns:
+        UUID | None: Batch identifier if present, otherwise None.
+    """
     try:
         dag_run = get_dag_run("etl_dag", dag_run_id)
     except Exception as exc:
