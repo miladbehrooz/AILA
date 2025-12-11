@@ -15,6 +15,7 @@ _SESSION_SELECTED_RUN = "upload_dashboard_selected_run"
 
 
 def render_page() -> None:
+    """Render the dashboard that lists historical ETL runs."""
     logger.debug("Rendering Upload Dashboard page")
     st.title("Data Upload Dashboard")
     st.caption("Review historical data upload sessions and their outcomes.")
@@ -65,6 +66,15 @@ def render_page() -> None:
 def _render_runs_table(
     runs: list[dict[str, Any]], limit: int, offset: int, total_entries: Any
 ) -> dict[str, Any] | None:
+    """Render the AG Grid table for DAG runs and return the selected run.
+    Args:
+        runs (list[dict[str, Any]]): List of DAG run dictionaries.
+        limit (int): Number of rows per page.
+        offset (int): Offset for pagination.
+        total_entries (Any): Total number of DAG runs available.
+    Returns:
+        dict[str, Any] | None: The selected DAG run dictionary, or None if none selected.
+    """
     logger.debug(
         f"Rendering runs table (rows={len(runs)} limit={limit} offset={offset} total={total_entries})"
     )
@@ -160,6 +170,10 @@ def _render_runs_table(
 
 
 def _render_run_details(run: dict[str, Any]) -> None:
+    """Render metadata and extraction summary for the selected run.
+    Args:
+        run (dict[str, Any]): The selected DAG run dictionary.
+    """
     logger.debug(f"Rendering run details for dag_run_id={run.get('dag_run_id')}")
     st.subheader("Run details")
     metadata_cols = st.columns(3)
@@ -199,6 +213,10 @@ def _render_run_details(run: dict[str, Any]) -> None:
 
 
 def _render_summary(summary: dict[str, Any]) -> None:
+    """Show the numeric summary and categorized source lists.
+    Args:
+        summary (dict[str, Any]): Extraction summary data.
+    """
     logger.debug(
         "Summary metrics new=%s duplicate=%s failed=%s",
         len(summary.get("new_sources", [])),
@@ -218,6 +236,12 @@ def _render_summary(summary: dict[str, Any]) -> None:
 
 
 def _render_source_list(label: str, items: list[str], level: str) -> None:
+    """Render a labeled message for a set of sources.
+    Args:
+        label (str): Label for the source list.
+        items (list[str]): List of source strings.
+        level (str): Message level: "success", "warning", or "error".
+    """
     if not items:
         return
     message = "\n".join(f"• {item}" for item in items)
@@ -230,6 +254,12 @@ def _render_source_list(label: str, items: list[str], level: str) -> None:
 
 
 def _render_table_controls(limit: int, page: int, total_entries: Any) -> None:
+    """Render pagination controls for the runs table.
+    Args:
+        limit (int): Current number of rows per page.
+        page (int): Current page number.
+        total_entries (Any): Total number of DAG runs available.
+    """
 
     with st.container(border=False):
         control_cols = st.columns([1, 1, 1, 0.8, 1, 1, 1, 1])
@@ -273,6 +303,12 @@ def _render_table_controls(limit: int, page: int, total_entries: Any) -> None:
 
 @st.cache_data(show_spinner=False, ttl=120)
 def _get_cached_summary(dag_run_id: str) -> dict[str, Any] | None:
+    """Return a cached extraction summary when possible.
+    Args:
+        dag_run_id (str): Airflow DAG run identifier.
+    Returns:
+        dict[str, Any] | None: Cached extraction summary, or None if not available.
+    """
     if not dag_run_id:
         return None
     try:
@@ -285,6 +321,7 @@ def _get_cached_summary(dag_run_id: str) -> dict[str, Any] | None:
 
 
 def _summary_counts(summary: dict[str, Any] | None) -> tuple[str, str, str]:
+    """Return stringified counts for new, duplicate, and failed sources."""
     if not summary:
         return "-", "-", "-"
     return (
@@ -297,12 +334,27 @@ def _summary_counts(summary: dict[str, Any] | None) -> tuple[str, str, str]:
 def _format_summary_counts(
     new_count: str, duplicate_count: str, failed_count: str
 ) -> str:
+    """Format the count trio for display inside the runs table.
+    Args:
+        new_count (str): Count of new sources.
+        duplicate_count (str): Count of duplicate sources.
+        failed_count (str): Count of failed sources.
+    Returns:
+        str: Formatted summary string.
+    """
     return f"New: {new_count} | Duplicates: {duplicate_count} | Failed: {failed_count}"
 
 
 def _find_run_by_number(
     runs: list[dict[str, Any]], row_number: Any
 ) -> dict[str, Any] | None:
+    """Return the run dictionary for the provided row number.
+    Args:
+        runs (list[dict[str, Any]]): List of DAG run dictionaries.
+        row_number (Any): Target row number to find.
+    Returns:
+        dict[str, Any] | None: The matching DAG run dictionary, or None if not found.
+    """
     if row_number is None:
         return None
 
@@ -313,6 +365,12 @@ def _find_run_by_number(
 
 
 def _format_timestamp(value: Any) -> str:
+    """Normalize ISO timestamps into a human-readable string.
+    Args:
+        value (Any): Input timestamp value.
+    Returns:
+        str: Formatted timestamp string.
+    """
     if not value or not isinstance(value, str):
         return "-"
     value = value.replace("Z", "+00:00")

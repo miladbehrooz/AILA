@@ -5,11 +5,12 @@ from loguru import logger
 
 
 def main() -> None:
-    st.set_page_config(page_title="LAIA", layout="wide")
-    logger.info("LAIA console landing page rendered")
-    st.title("LAIA Console")
+    """Render the landing page layout for the Streamlit app."""
+    st.set_page_config(page_title="AI Learning Assistant", layout="wide")
+    logger.info("AILA landing page rendered")
+    st.title("AI Learning Assistant")
     st.write(
-        "Select a page from the Streamlit sidebar to access the Source Upload form "
+        "Select a page from sidebar to access the Source Upload form "
         "or the Upload Dashboard."
     )
 

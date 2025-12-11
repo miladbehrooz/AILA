@@ -12,6 +12,14 @@ from backend.utils.misc import batch
 def chunk_and_embed_documents(
     documents: Annotated[list, "cleaned_documents"],
 ) -> Annotated[list, "embedded_documents"]:
+    """Chunk each cleaned document and embed the resulting segments.
+
+    Args:
+        documents (list): Cleaned documents emitted by the cleaning stage.
+
+    Returns:
+        list: Embedded chunk models ready for loading into the vector store.
+    """
     embedded_chunks = []
     for document in documents:
         chunks = ChunkingDispatcher.dispatch(document)

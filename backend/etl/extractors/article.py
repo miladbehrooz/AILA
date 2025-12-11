@@ -4,14 +4,31 @@ from langchain_community.document_loaders import AsyncHtmlLoader
 from langchain_community.document_transformers import Html2TextTransformer
 from backend.utils import logger
 from backend.etl.domain.documents import ArticleDocument
-from backend.etl.domain.documents import ArticleDocument
 from .base import URLExtractor, ExtractionResult
 
 
 class ArticleExtractor(URLExtractor):
+    """Extractor that scrapes HTML documents and stores them as articles.
+    Attributes:
+        model (type): The document model associated with articles.
+    """
+
     model = ArticleDocument
 
     def extract(self, link: str, **kwargs) -> bool:
+        """Scrape a URL, transform the HTML into text, and persist the article.
+
+        Args:
+            link (str): URL of the article to extract.
+            **kwargs: Additional keyword arguments. Must include `batch_id`.
+
+        Returns:
+            ExtractionResult: INSERTED when a new article is stored, DUPLICATE when an
+                article with the same link already exists.
+
+        Raises:
+            ValueError: If `batch_id` is missing or cannot be coerced into a UUID.
+        """
         old_model = self.model.find(link=link)
         if old_model is not None:
             logger.info(f"Article already exists in the database: {link}")

@@ -6,36 +6,62 @@ from .base import BaseExtractor, URLExtractor, FileExtractor
 from .article import ArticleExtractor
 from .youtube import YoutubeVideoExtractor
 from .github import GithubExtractor
-from .files import PDFFileExtractor, WordFileExtractor, TextFileExtractor
+from .files import PDFFileExtractor
 
 
 # TODO: introduce wrapper function for register different extractors like youtube, article and ...
 class ExtractorDispatcher:
-    def __init__(self):
+    """Registry of available extractors keyed by URL or file signature."""
+
+    def __init__(self) -> None:
+        """Initialize the dispatcher with empty registries."""
         self._url_extractors: dict[str, type[URLExtractor]] = {}
         self._file_extractors: dict[str, type[FileExtractor]] = {}
 
     @classmethod
     def build(cls) -> "ExtractorDispatcher":
+        """Create a dispatcher with no pre-registered extractors.
+        Returns:
+           ExtractorDispatcher: New dispatcher instance.
+        """
         dispatcher = cls()
 
         return dispatcher
 
     def register_youtube(self) -> "ExtractorDispatcher":
+        """Register the default YouTube extractor.
+        Returns:
+            ExtractorDispatcher: The dispatcher instance.
+        """
         self.register_url_extractor("https://youtube.com", YoutubeVideoExtractor)
         return self
 
     def register_github(self) -> "ExtractorDispatcher":
+        """Register the default GitHub extractor.
+        Returns:
+            ExtractorDispatcher: The dispatcher instance.
+        """
         self.register_url_extractor("https://github.com", GithubExtractor)
         return self
 
     def register_pdf(self) -> "ExtractorDispatcher":
+        """Register the default PDF file extractor.
+        Returns:
+            ExtractorDispatcher: The dispatcher instance.
+        """
         self.register_file_extractor("pdf", PDFFileExtractor)
         return self
 
     def register_url_extractor(
         self, domain: str, extractor_cls: type[URLExtractor]
     ) -> "ExtractorDispatcher":
+        """Register a URL extractor keyed by its matching domain.
+        Args:
+            domain (str): Domain name to match (e.g., "youtube.com").
+            extractor_cls (type[URLExtractor]): Extractor class to register
+        Returns:
+            ExtractorDispatcher: The dispatcher instance.
+        """
         parsed = urlparse(domain)
         domain = parsed.netloc or parsed.path
         pattern = rf"https://(www\.)?{re.escape(domain)}/*"
@@ -45,10 +71,22 @@ class ExtractorDispatcher:
     def register_file_extractor(
         self, extension: str, extractor_cls: type[FileExtractor]
     ) -> "ExtractorDispatcher":
+        """Register a file extractor keyed by its extension.
+        Args:
+            extension (str): File extension to match (e.g., "pdf").
+            extractor_cls (type[FileExtractor]): Extractor class to register
+        Returns:
+            ExtractorDispatcher: The dispatcher instance."""
         self._file_extractors[extension.lower()] = extractor_cls
         return self
 
     def get_extractor(self, source: str) -> BaseExtractor | None:
+        """Return the extractor matching either a URL or local file.
+        Args:
+            source (str): URL or file path to extract from.
+        Returns:
+            BaseExtractor | None: The matching extractor instance, or None if no match.
+        """
         parsed = urlparse(source)
         is_url = bool(parsed.scheme and parsed.netloc)
 

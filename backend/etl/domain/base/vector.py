@@ -5,7 +5,7 @@ from uuid import UUID
 
 import numpy as np
 from loguru import logger
-from pydantic import UUID4, BaseModel, Field
+from pydantic import BaseModel, Field
 from qdrant_client.http import exceptions
 from qdrant_client.http.models import (
     Distance,
@@ -27,18 +27,44 @@ T = TypeVar("T", bound="VectorBaseDocument")
 
 
 class VectorBaseDocument(BaseModel, Generic[T], ABC):
+    """Base Qdrant document with helpers for CRUD and grouping operations.
+    Attributes:
+        id (UUID): Primary key of the document.
+    """
+
     id: UUID = Field(default_factory=uuid.uuid4)
 
     def __eq__(self, value: object) -> bool:
+        """Compare two documents by type and identifier.
+
+        Args:
+            value (object): Object to compare against.
+
+        Returns:
+            bool: True when both objects belong to the same class and share an ID.
+        """
         if not isinstance(value, self.__class__):
             return False
         return self.id == value.id
 
     def __hash__(self) -> int:
+        """Compute a hash derived from the UUID.
+
+        Returns:
+            int: Hash value based on the document's ID.
+        """
         return hash(self.id)
 
     @classmethod
     def from_record(cls: Type[T], point: Record) -> T:
+        """Convert a Qdrant record into a document instance.
+
+        Args:
+            point (Record): Record returned by Qdrant.
+
+        Returns:
+            T: Instantiated document populated from the record payload.
+        """
         _id = UUID(point.id, version=4)
         payload = point.payload or {}
 
@@ -52,6 +78,14 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return cls(**attributes)
 
     def to_point(self: T, **kwargs) -> PointStruct:
+        """Translate the document into a Qdrant point payload.
+
+        Args:
+            **kwargs: Additional keyword arguments forwarded to `model_dump`.
+
+        Returns:
+            PointStruct: Payload that can be sent to Qdrant.
+        """
         exclude_unset = kwargs.pop("exclude_unset", False)
         by_alias = kwargs.pop("by_alias", True)
 
@@ -67,6 +101,14 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return PointStruct(id=_id, vector=vector, payload=payload)
 
     def model_dump(self: T, **kwargs) -> dict:
+        """Dump the model ensuring UUIDs become strings.
+
+        Args:
+            **kwargs: Keyword arguments handed to Pydantic's `model_dump`.
+
+        Returns:
+            dict: Serialized representation safe for JSON payloads.
+        """
         dict_ = super().model_dump(**kwargs)
 
         dict_ = self._uuid_to_str(dict_)
@@ -74,6 +116,14 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return dict_
 
     def _uuid_to_str(self, item: Any) -> Any:
+        """Recursively convert UUID instances into their string representation.
+
+        Args:
+            item (Any): Nested structure that may contain UUID values.
+
+        Returns:
+            Any: Structure with all UUID entries replaced by strings.
+        """
         if isinstance(item, dict):
             for key, value in item.items():
                 if isinstance(value, UUID):
@@ -87,6 +137,14 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def bulk_insert(cls: Type[T], documents: list["VectorBaseDocument"]) -> bool:
+        """Insert many documents handling collection bootstrapping.
+
+        Args:
+            documents (list[VectorBaseDocument]): Documents to persist.
+
+        Returns:
+            bool: True when every document was inserted successfully.
+        """
         try:
             cls._bulk_insert(documents)
         except exceptions.UnexpectedResponse:
@@ -109,6 +167,11 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def _bulk_insert(cls: Type[T], documents: list["VectorBaseDocument"]) -> None:
+        """Low-level insertion that assumes the collection exists.
+
+        Args:
+            documents (list[VectorBaseDocument]): Documents to persist.
+        """
         points = [doc.to_point() for doc in documents]
 
         connection.upsert(collection_name=cls.get_collection_name(), points=points)
@@ -117,6 +180,15 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
     def bulk_find(
         cls: Type[T], limit: int = 10, **kwargs
     ) -> tuple[list[T], UUID | None]:
+        """Scroll through the collection and return results with the next offset.
+
+        Args:
+            limit (int, optional): Max number of records per chunk. Defaults to 10.
+            **kwargs: Additional filters forwarded to Qdrant.
+
+        Returns:
+            tuple[list[T], UUID | None]: Retrieved documents plus the next offset.
+        """
         try:
             documents, next_offset = cls._bulk_find(limit=limit, **kwargs)
         except exceptions.UnexpectedResponse:
@@ -132,6 +204,15 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
     def _bulk_find(
         cls: Type[T], limit: int = 10, **kwargs
     ) -> tuple[list[T], UUID | None]:
+        """Execute the Qdrant scroll call for the collection.
+
+        Args:
+            limit (int, optional): Max number of records per chunk. Defaults to 10.
+            **kwargs: Additional filters forwarded to the scroll API.
+
+        Returns:
+            tuple[list[T], UUID | None]: Records plus their next offset.
+        """
         collection_name = cls.get_collection_name()
 
         offset = kwargs.pop("offset", None)
@@ -153,6 +234,15 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def bulk_delete(cls: Type[T], batch_id: UUID | str, chunk_size: int = 128) -> int:
+        """Delete all records that belong to the provided batch ID.
+
+        Args:
+            batch_id (UUID | str): Batch identifier attached to the records.
+            chunk_size (int, optional): Number of points deleted per request.
+
+        Returns:
+            int: Number of deleted points.
+        """
         try:
             deleted = cls._bulk_delete(batch_id=batch_id, chunk_size=chunk_size)
         except exceptions.UnexpectedResponse:
@@ -164,6 +254,15 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def _bulk_delete(cls: Type[T], batch_id: UUID | str, chunk_size: int = 128) -> int:
+        """Perform batched deletions for a batch_id filter.
+
+        Args:
+            batch_id (UUID | str): Batch identifier attached to the records.
+            chunk_size (int, optional): Number of points deleted per request.
+
+        Returns:
+            int: Number of deleted points.
+        """
         collection_name = cls.get_collection_name()
         filter_ = Filter(
             must=[
@@ -210,6 +309,16 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def search(cls: Type[T], query_vector: list, limit: int = 10, **kwargs) -> list[T]:
+        """Search the vector store for the closest matches.
+
+        Args:
+            query_vector (list): Vector representation of the query.
+            limit (int, optional): Number of matches to return. Defaults to 10.
+            **kwargs: Additional search constraints.
+
+        Returns:
+            list[T]: Ordered list of matching documents.
+        """
         try:
             documents = cls._search(query_vector=query_vector, limit=limit, **kwargs)
         except exceptions.UnexpectedResponse:
@@ -223,6 +332,16 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def _search(cls: Type[T], query_vector: list, limit: int = 10, **kwargs) -> list[T]:
+        """Execute the raw Qdrant search call.
+
+        Args:
+            query_vector (list): Vector representation of the query.
+            limit (int, optional): Number of matches to return. Defaults to 10.
+            **kwargs: Additional search constraints.
+
+        Returns:
+            list[T]: Ordered list of matching documents.
+        """
         collection_name = cls.get_collection_name()
         records = connection.search(
             collection_name=collection_name,
@@ -238,6 +357,11 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def get_or_create_collection(cls: Type[T]) -> CollectionInfo:
+        """Ensure the backing collection exists and return its metadata.
+
+        Returns:
+            CollectionInfo: Metadata describing the collection.
+        """
         collection_name = cls.get_collection_name()
 
         try:
@@ -257,6 +381,11 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def create_collection(cls: Type[T]) -> bool:
+        """Create the Qdrant collection using the class metadata.
+
+        Returns:
+            bool: True when the collection was created successfully.
+        """
         collection_name = cls.get_collection_name()
         use_vector_index = cls.get_use_vector_index()
 
@@ -268,6 +397,15 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
     def _create_collection(
         cls, collection_name: str, use_vector_index: bool = True
     ) -> bool:
+        """Create a collection with or without a vector index.
+
+        Args:
+            collection_name (str): Name of the collection to create.
+            use_vector_index (bool, optional): Whether to attach a vector index.
+
+        Returns:
+            bool: True when the collection creation succeeds.
+        """
         if use_vector_index is True:
             vectors_config = VectorParams(
                 size=EmbeddingModelSingleton().embedding_size, distance=Distance.COSINE
@@ -281,6 +419,11 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def get_category(cls: Type[T]) -> DataCategory:
+        """Return the business category configured for the document.
+
+        Returns:
+            DataCategory: Category assigned via the Config inner class.
+        """
         if not hasattr(cls, "Config") or not hasattr(cls.Config, "category"):
             raise ImproperlyConfigured(
                 "The class should define a Config class with"
@@ -291,6 +434,11 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def get_collection_name(cls: Type[T]) -> str:
+        """Return the collection name declared on the Config inner class.
+
+        Returns:
+            str: Qdrant collection name.
+        """
         if not hasattr(cls, "Config") or not hasattr(cls.Config, "name"):
             raise ImproperlyConfigured(
                 "The class should define a Config class with"
@@ -301,6 +449,11 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def get_use_vector_index(cls: Type[T]) -> bool:
+        """Return whether the collection should maintain a vector index.
+
+        Returns:
+            bool: True when vectors should be stored alongside payloads.
+        """
         if not hasattr(cls, "Config") or not hasattr(cls.Config, "use_vector_index"):
             return True
 
@@ -310,18 +463,43 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
     def group_by_class(
         cls: Type["VectorBaseDocument"], documents: list["VectorBaseDocument"]
     ) -> Dict["VectorBaseDocument", list["VectorBaseDocument"]]:
+        """Group documents by their Python class.
+
+        Args:
+            documents (list[VectorBaseDocument]): Documents to group.
+
+        Returns:
+            dict: Mapping of class to the corresponding documents.
+        """
         return cls._group_by(documents, selector=lambda doc: doc.__class__)
 
     @classmethod
     def group_by_category(
         cls: Type[T], documents: list[T]
     ) -> Dict[DataCategory, list[T]]:
+        """Group documents by their configured data category.
+
+        Args:
+            documents (list[T]): Documents to group.
+
+        Returns:
+            dict[DataCategory, list[T]]: Mapping of categories to documents.
+        """
         return cls._group_by(documents, selector=lambda doc: doc.get_category())
 
     @classmethod
     def _group_by(
         cls: Type[T], documents: list[T], selector: Callable[[T], Any]
     ) -> Dict[Any, list[T]]:
+        """Group documents using the provided selector function.
+
+        Args:
+            documents (list[T]): Documents to group.
+            selector (Callable[[T], Any]): Function returning the grouping key.
+
+        Returns:
+            dict[Any, list[T]]: Mapping of calculated keys to documents.
+        """
         grouped = {}
         for doc in documents:
             key = selector(doc)
@@ -336,6 +514,17 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
     def collection_name_to_class(
         cls: Type["VectorBaseDocument"], collection_name: str
     ) -> type["VectorBaseDocument"]:
+        """Return the subclass that manages the provided collection.
+
+        Args:
+            collection_name (str): Registered Qdrant collection name.
+
+        Returns:
+            type[VectorBaseDocument]: Subclass associated with the name.
+
+        Raises:
+            ValueError: When no subclass matches the collection name.
+        """
         for subclass in cls.__subclasses__():
             try:
                 if subclass.get_collection_name() == collection_name:
@@ -352,6 +541,14 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def _has_class_attribute(cls: Type[T], attribute_name: str) -> bool:
+        """Check if the class or any base defines the attribute annotation.
+
+        Args:
+            attribute_name (str): Attribute annotation to look up.
+
+        Returns:
+            bool: True if the annotation exists on the class hierarchy.
+        """
         if attribute_name in cls.__annotations__:
             return True
 

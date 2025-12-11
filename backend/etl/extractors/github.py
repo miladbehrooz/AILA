@@ -9,13 +9,33 @@ from backend.utils import logger
 
 
 class GithubExtractor(URLExtractor):
+    """Extractor that clones repositories and stores their files.
+    Attributes:
+        model (type): The document model associated with GitHub repositories.
+    """
+
     model = RepositoryDocument
 
     def __init__(self, ignore=(".git", ".toml", ".lock", ".png")) -> None:
+        """Initialize the extractor with file patterns to ignore.
+        Args:
+            ignore (tuple[str, ...], optional): File or directory suffixes to ignore.
+                Defaults to (".git", ".toml", ".lock", ".png").
+        """
         super().__init__()
         self._ignore = ignore
 
     def extract(self, link: str, **kwargs) -> bool:
+        """Clone a repository, serialize its files, and persist the metadata.
+        Args:
+            link (str): URL of the GitHub repository to extract.
+            **kwargs: Additional keyword arguments. Must include `batch_id`.
+        Returns:
+            ExtractionResult: INSERTED when a new repository is stored, DUPLICATE when a
+                repository with the same link already exists.
+        Raises:
+            ValueError: If `batch_id` is missing or cannot be coerced into a UUID.
+        """
         old_model = self.model.find(link=link)
         if old_model is not None:
             logger.info(f"Github repository already exists in the database: {link}")

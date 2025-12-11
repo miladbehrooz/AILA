@@ -11,6 +11,16 @@ embedding_model = EmbeddingModelSingleton()
 
 
 def chunk_text(text: str, chunk_size: int = 500, chunk_overlap: int = 50) -> list[str]:
+    """Split arbitrary text into fixed-size segments with optional overlap.
+
+    Args:
+        text (str): Source text to segment.
+        chunk_size (int, optional): Target character length per chunk. Defaults to 500.
+        chunk_overlap (int, optional): Number of overlapping tokens between chunks.
+
+    Returns:
+        list[str]: Ordered list of text chunks.
+    """
     character_splitter = RecursiveCharacterTextSplitter(
         separators=["\n\n"],
         chunk_size=chunk_size,
@@ -38,6 +48,16 @@ def chunk_text(text: str, chunk_size: int = 500, chunk_overlap: int = 50) -> lis
 
 
 def chunk_article(text: str, min_length: int, max_length: int) -> list[str]:
+    """Split long-form articles by sentences while enforcing length limits.
+
+    Args:
+        text (str): Article text to chunk.
+        min_length (int): Minimum number of characters per chunk.
+        max_length (int): Maximum number of characters per chunk.
+
+    Returns:
+        list[str]: Chunks that respect the configured length boundaries.
+    """
     sentences = re.split(r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s", text)
 
     extracts = []

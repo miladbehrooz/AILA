@@ -1,6 +1,6 @@
 class LAIAException(Exception):
-    pass
+    """Base exception for LAIA-specific errors."""
 
 
 class ImproperlyConfigured(LAIAException):
-    pass
+    """Raised when configuration metadata is invalid or missing."""

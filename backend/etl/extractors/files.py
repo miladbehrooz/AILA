@@ -9,10 +9,25 @@ from backend.utils import logger
 
 
 class PDFFileExtractor(FileExtractor):
+    """Extractor for PDF files.
+
+    Attributes:
+        model (type): The document model associated with PDF files.
+    """
+
     model = PDFDocument
 
-    # TODO: Implement the extract method using Langchain docling
-    def extract(self, path: str, **kwargs) -> bool:
+    def extract(self, path: str, **kwargs) -> ExtractionResult:
+        """Extract content from a PDF file and persist it.
+
+        Args:
+            path (str): Path to the PDF file.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            ExtractionResult: INSERTED when stored successfully or DUPLICATE when the
+                same PDF already exists.
+        """
         resolved_path = Path(path)
         if not resolved_path.is_absolute():
             resolved_path = (settings.PROJECT_ROOT / resolved_path).resolve()
@@ -59,6 +74,14 @@ class PDFFileExtractor(FileExtractor):
         return ExtractionResult.INSERTED
 
     def _compute_hash(self, path: Path) -> str:
+        """Compute the hash of a file.
+
+        Args:
+            path (Path): Path to the file.
+
+        Returns:
+            str: Hash value.
+        """
         hasher = hashlib.sha256()
         with path.open("rb") as file:
             for chunk in iter(lambda: file.read(8192), b""):
@@ -67,14 +90,34 @@ class PDFFileExtractor(FileExtractor):
 
 
 class WordFileExtractor(FileExtractor):
+    """Extractor for Word files."""
 
     def extract(self, source: str, **kwargs) -> None:
+        """Extract content from a Word file.
+
+        Args:
+            source (str): Path to the Word file.
+            **kwargs: Additional keyword arguments.
+
+        Raises:
+            NotImplementedError: Always.
+        """
         raise NotImplementedError
 
 
 class TextFileExtractor(FileExtractor):
+    """Extractor for text files."""
 
     def extract(self, source: str, **kwargs) -> None:
+        """Extract content from a text file.
+
+        Args:
+            source (str): Path to the text file.
+            **kwargs: Additional keyword arguments.
+
+        Raises:
+            NotImplementedError: Always.
+        """
         raise NotImplementedError
 
 

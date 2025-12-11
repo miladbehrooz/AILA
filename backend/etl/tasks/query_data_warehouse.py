@@ -16,6 +16,15 @@ from backend.etl.domain.documents import (
 def query_data_warehouse(
     batch_id: UUID, new_extraction: bool
 ) -> Annotated[list, "raw documents"]:
+    """Fetch all raw documents belonging to a batch from the warehouse.
+
+    Args:
+        batch_id (UUID): Identifier for the extraction batch.
+        new_extraction (bool): Whether the upstream extraction produced new data.
+
+    Returns:
+        list: Raw document models, or an empty list when nothing new is available.
+    """
     if not new_extraction:
         logger.info("No new data extracted. Skipping warehouse query.")
         return []
@@ -34,6 +43,15 @@ def query_data_warehouse(
 
 
 def fetch_all_data(batch_id: UUID) -> dict[str, list[NoSQLBaseDocument]]:
+    """Load all document types concurrently for the requested batch.
+
+    Args:
+        batch_id (UUID): Identifier assigned to the extracted sources.
+
+    Returns:
+        dict[str, list[NoSQLBaseDocument]]: Mapping with the records fetched for each
+            collection.
+    """
 
     with ThreadPoolExecutor() as executor:
 
@@ -49,7 +67,7 @@ def fetch_all_data(batch_id: UUID) -> dict[str, list[NoSQLBaseDocument]]:
             query_name = future_to_query[future]
             try:
                 results[query_name] = future.result()
-            except Exception as exc:
+            except Exception:
                 logger.exception(f"{query_name} request failed.")
 
                 results[query_name] = []
@@ -58,18 +76,42 @@ def fetch_all_data(batch_id: UUID) -> dict[str, list[NoSQLBaseDocument]]:
 
 
 def __fetch_articles(batch_id: UUID) -> list[NoSQLBaseDocument]:
+    """Retrieve article documents for the target batch.
+    Args:
+        batch_id (UUID): Batch identifier to filter the articles.
+    Returns:
+        list[NoSQLBaseDocument]: List of article documents for the batch.
+    """
     return ArticleDocument.bulk_find(batch_id=batch_id)
 
 
 def __fetch_youtube_videos(batch_id: UUID) -> list[NoSQLBaseDocument]:
+    """Retrieve YouTube documents for the target batch.
+    Args:
+        batch_id (UUID): Batch identifier to filter the YouTube videos.
+    Returns:
+            list[NoSQLBaseDocument]: List of YouTube documents for the batch.
+    """
     return YoutubeDocument.bulk_find(batch_id=batch_id)
 
 
 def __fetch_repositories(batch_id: UUID) -> list[NoSQLBaseDocument]:
+    """Retrieve repository documents for the target batch.
+    Args:
+        batch_id (UUID): Batch identifier to filter the repositories.
+    Returns:
+        list[NoSQLBaseDocument]: List of repository documents for the batch.
+    """
     return RepositoryDocument.bulk_find(batch_id=batch_id)
 
 
 def __fetch_pdfs(batch_id: UUID) -> list[NoSQLBaseDocument]:
+    """Retrieve PDF documents for the target batch.
+    Args:
+        batch_id (UUID): Batch identifier to filter the PDFs.
+    Returns:
+        list[NoSQLBaseDocument]: List of PDF documents for the batch.
+    """
     return PDFDocument.bulk_find(batch_id=batch_id)
 
 
