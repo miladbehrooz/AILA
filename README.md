@@ -34,23 +34,6 @@ Learning AI Assistant (LAIA) is a full-stack ETL platform that ingests heterogen
 ---
 
 ## Architecture
-```mermaid
-flowchart LR
-    S[Sources]
-    E[Extract]
-    C1[Clean]
-    C2[Chunk]
-    V[Embed / Vectorize]
-
-    S --> E --> C1 --> C2 --> V
-
-    C2 --> M["MongoDB<br>(raw / cleaned)"]
-    V --> Q["Qdrant<br>(embeddings)"]
-
-```
-
-<br>
-<br>
 
 - **Backend API**: FastAPI endpoints triggering Airflow DAGs, exposing run status, logs, and file upload endpoints.
 - **Airflow Tasks**: Python-based tasks in `backend/etl/tasks` orchestrate dispatchers and document models.
