@@ -16,7 +16,6 @@ AI Learning Assistant (AILA) is being built in phases. **Phase 1, which you are 
     - [Clone \& Bootstrap](#clone--bootstrap)
   - [Configuration](#configuration)
   - [Running the Stack](#running-the-stack)
-  - [Testing](#testing)
   - [Project Structure](#project-structure)
 
 ---
@@ -34,6 +33,7 @@ AI Learning Assistant (AILA) is being built in phases. **Phase 1, which you are 
 ---
 
 ## Architecture
+![alt text](./images/aila.jpg)
 
 - **Backend API**: FastAPI endpoints triggering Airflow DAGs, exposing run status, logs, and file upload endpoints.
 - **Airflow Tasks**: Python-based tasks in `backend/etl/tasks` orchestrate dispatchers and document models.
@@ -44,14 +44,13 @@ AI Learning Assistant (AILA) is being built in phases. **Phase 1, which you are 
 
 ## Tech Stack
 
-| Layer          | Technology                                                             |
-| -------------- | ---------------------------------------------------------------------- |
-| API            | FastAPI, Pydantic, Requests                                            |
-| Orchestration  | Apache Airflow DAG (taskflow API)                                      |
-| Data           | MongoDB (via MongoEngine), Qdrant                                      |
-| Embeddings     | LangChain community loaders, Docling, HuggingFace/OpenAI/Cohere models |
-| Frontend       | Streamlit, st-aggrid                                                   |
-| Infrastructure | Docker Compose, Grafana + Loki (optional), Promtail (optional)         |
+| Layer          | Technology                                |
+| -------------- | ----------------------------------------- |
+| API            | FastAPI                                   |
+| Orchestration  | Apache Airflow DAG (taskflow API)         |
+| Data           | MongoDB (via MongoEngine), Qdrant         |
+| Frontend       | Streamlit                                 |
+| Infrastructure | Docker Compose, Grafana + Loki , Promtail |
 
 ---
 
@@ -119,30 +118,6 @@ AIRFLOW_API_URL=http://airflow-webserver:8080/api/v1
 4. **Monitor**:
    - Streamlit dashboard shows recent DAG runs and summaries.
    - API endpoints expose run status, logs, and cancellation.
-
----
-
-## Testing
-
-Run unit/integration tests from the repo root:
-
-```bash
-poetry run pytest
-```
-
-Recommended additional checks:
-
-```bash
-ruff check .
-black --check .
-mypy backend frontend
-```
-
-Airflow DAGs can be dry-run locally:
-
-```bash
-poetry run airflow dags test etl_dag 2024-01-01
-```
 
 ---
 
