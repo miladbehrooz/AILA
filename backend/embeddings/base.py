@@ -1,15 +1,15 @@
-from typing import Any, Callable, Dict, TypeAlias, Literal, Optional
+from typing import Any, Callable, Literal, Optional, TypeAlias
 
-from langchain_core.embeddings import Embeddings
-from langchain_openai import OpenAIEmbeddings
 from langchain_cohere import CohereEmbeddings
+from langchain_core.embeddings import Embeddings
 from langchain_huggingface import (
     HuggingFaceEmbeddings,
     HuggingFaceEndpointEmbeddings,
 )
+from langchain_openai import OpenAIEmbeddings
 
-from backend.utils import logger
 from backend.settings.settings import settings
+from backend.utils import logger
 
 ProviderName: TypeAlias = Literal["openai", "cohere", "huggingface", "huggingfaceapi"]
 BuilderFunc: TypeAlias = Callable[..., Embeddings]
@@ -22,7 +22,7 @@ class EmbeddingFactory:
     This class maintains a registry of embedding providers and their builder functions.
     """
 
-    _REGISTRY: Dict[ProviderName, BuilderFunc] = {}
+    _REGISTRY: dict[ProviderName, BuilderFunc] = {}
 
     @staticmethod
     def _build_openai(*, model_name: str, **kw: Any) -> OpenAIEmbeddings:

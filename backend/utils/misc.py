@@ -1,4 +1,4 @@
-from typing import Generator
+from collections.abc import Generator
 
 
 def batch(list_: list, size: int) -> Generator[list, None, None]:

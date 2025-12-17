@@ -1,6 +1,7 @@
 from mongoengine import connect
-from backend.utils import logger
+
 from backend.settings.settings import settings
+from backend.utils import logger
 
 
 class MongoDatabaseConnector:

@@ -1,13 +1,14 @@
 import json
 import time
+from collections.abc import Generator
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, Callable, Generator
+from typing import Any, Callable
 
 import requests
+from loguru import logger
 
 from frontend.settings import settings
-from loguru import logger
 
 
 @lru_cache(maxsize=1)

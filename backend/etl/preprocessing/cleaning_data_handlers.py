@@ -2,21 +2,21 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
 from backend.etl.domain.cleaned_documents import (
-    CleanedDocument,
     CleanedArticleDocument,
+    CleanedDocument,
+    CleanedPDFDocument,
     CleanedRepositoryDocument,
     CleanedYoutubeDocument,
-    CleanedPDFDocument,
 )
 from backend.etl.domain.documents import (
-    BaseDocument,
     ArticleDocument,
+    BaseDocument,
+    PDFDocument,
     RepositoryDocument,
     YoutubeDocument,
-    PDFDocument,
 )
-from .operations.cleaning import clean_text, clean_youtube_transcript
 
+from .operations.cleaning import clean_text, clean_youtube_transcript
 
 DocumentT = TypeVar("DocumentT", bound=BaseDocument)
 CleanedDocumentT = TypeVar("CleanedDocumentT", bound=CleanedDocument)

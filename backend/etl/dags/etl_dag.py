@@ -1,11 +1,13 @@
 from datetime import datetime
 from uuid import UUID
+
 from airflow.decorators import dag, task
-from backend.etl.tasks.extract import extract_sources
-from backend.etl.tasks.query_data_warehouse import query_data_warehouse
-from backend.etl.tasks.clean import clean_documents
+
 from backend.etl.tasks.chunk_and_embed import chunk_and_embed_documents
+from backend.etl.tasks.clean import clean_documents
+from backend.etl.tasks.extract import extract_sources
 from backend.etl.tasks.load import load_to_vector_db
+from backend.etl.tasks.query_data_warehouse import query_data_warehouse
 from backend.utils import logger
 
 # TODO: use the conf parameter to pass the sources and batch_id dynamically

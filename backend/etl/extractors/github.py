@@ -3,9 +3,11 @@ import shutil
 import subprocess
 import tempfile
 from uuid import UUID
-from .base import URLExtractor, ExtractionResult
+
 from backend.etl.domain.documents import RepositoryDocument
 from backend.utils import logger
+
+from .base import ExtractionResult, URLExtractor
 
 
 class GithubExtractor(URLExtractor):
@@ -64,7 +66,7 @@ class GithubExtractor(URLExtractor):
                     if file.endswith(self._ignore):
                         continue
                     file_path = os.path.join(dir, file)
-                    with open(os.path.join(root, file), "r", errors="ignore") as f:
+                    with open(os.path.join(root, file), errors="ignore") as f:
                         tree[file_path] = f.read().replace(" ", "")
 
             batch_id = kwargs.get("batch_id")

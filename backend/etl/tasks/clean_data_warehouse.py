@@ -1,12 +1,13 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from uuid import UUID, uuid4
-from backend.utils import logger
+
 from backend.etl.domain.documents import (
     ArticleDocument,
     PDFDocument,
-    YoutubeDocument,
     RepositoryDocument,
+    YoutubeDocument,
 )
+from backend.utils import logger
 
 
 def clean_data_warehouse(batch_id: UUID) -> dict[str, int]:

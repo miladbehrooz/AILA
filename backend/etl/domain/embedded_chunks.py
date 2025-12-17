@@ -1,7 +1,7 @@
 from abc import ABC
+from uuid import UUID
 
 from pydantic import UUID4, Field
-from uuid import UUID
 
 from backend.etl.domain.types import DataCategory
 

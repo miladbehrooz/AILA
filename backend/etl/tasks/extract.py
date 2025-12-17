@@ -1,8 +1,10 @@
 from typing import TypedDict
 from uuid import UUID, uuid4
+
 from airflow.decorators import task
-from backend.etl.extractors.dispatcher import ExtractorDispatcher
+
 from backend.etl.extractors.base import ExtractionResult
+from backend.etl.extractors.dispatcher import ExtractorDispatcher
 from backend.utils import logger
 
 

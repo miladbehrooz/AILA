@@ -1,12 +1,14 @@
 import os
 import re
 from urllib.parse import urlparse
+
 from backend.utils import logger
-from .base import BaseExtractor, URLExtractor, FileExtractor
+
 from .article import ArticleExtractor
-from .youtube import YoutubeVideoExtractor
-from .github import GithubExtractor
+from .base import BaseExtractor, FileExtractor, URLExtractor
 from .files import PDFFileExtractor
+from .github import GithubExtractor
+from .youtube import YoutubeVideoExtractor
 
 
 # TODO: introduce wrapper function for register different extractors like youtube, article and ...

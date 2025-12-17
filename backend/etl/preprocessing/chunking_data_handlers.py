@@ -4,15 +4,15 @@ from typing import Generic, TypeVar
 from uuid import UUID
 
 from backend.etl.domain.chunks import (
-    Chunk,
     ArticleChunk,
-    RepositoryChunk,
+    Chunk,
     PDFChunk,
+    RepositoryChunk,
     YoutubeChunk,
 )
 from backend.etl.domain.cleaned_documents import (
-    CleanedDocument,
     CleanedArticleDocument,
+    CleanedDocument,
     CleanedPDFDocument,
     CleanedRepositoryDocument,
     CleanedYoutubeDocument,

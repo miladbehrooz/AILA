@@ -1,15 +1,17 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Annotated
 from uuid import UUID, uuid4
-from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from airflow.decorators import task
-from backend.utils import logger
+
 from backend.etl.domain.base.nosql import NoSQLBaseDocument
 from backend.etl.domain.documents import (
     ArticleDocument,
     PDFDocument,
-    YoutubeDocument,
     RepositoryDocument,
+    YoutubeDocument,
 )
+from backend.utils import logger
 
 
 @task

@@ -1,5 +1,5 @@
 from uuid import UUID, uuid4
-from backend.utils import logger
+
 from backend.etl.domain.cleaned_documents import (
     CleanedArticleDocument,
     CleanedPDFDocument,
@@ -12,7 +12,7 @@ from backend.etl.domain.embedded_chunks import (
     EmbeddedRepositoryChunk,
     EmbeddedYoutubeChunk,
 )
-
+from backend.utils import logger
 
 VECTOR_DOCUMENT_MODELS = (
     CleanedArticleDocument,

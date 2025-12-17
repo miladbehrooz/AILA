@@ -1,9 +1,12 @@
+from uuid import UUID
+
 import requests
 import yt_dlp
-from uuid import UUID
-from .base import URLExtractor, ExtractionResult
+
 from backend.etl.domain.documents import YoutubeDocument
 from backend.utils import logger
+
+from .base import ExtractionResult, URLExtractor
 
 
 class YoutubeVideoExtractor(URLExtractor):

@@ -1,11 +1,12 @@
 import uuid
-from mongoengine import DateTimeField, Document, UUIDField
 from datetime import datetime
-from typing import Optional, Type, TypeVar, Generic
-from loguru import logger
-from backend.infrastructure.db.mongo import MongoDatabaseConnector
-from backend.etl.domain.exceptions import ImproperlyConfigured
+from typing import Generic, Optional, TypeVar
 
+from loguru import logger
+from mongoengine import DateTimeField, Document, UUIDField
+
+from backend.etl.domain.exceptions import ImproperlyConfigured
+from backend.infrastructure.db.mongo import MongoDatabaseConnector
 
 _database = MongoDatabaseConnector.connect()
 
@@ -50,7 +51,7 @@ class NoSQLBaseDocument(Document, Generic[T]):
         return data
 
     @classmethod
-    def find(cls: Type[T], **filter_options) -> Optional[T]:
+    def find(cls: type[T], **filter_options) -> Optional[T]:
         """Return the first document that matches the provided filters.
         Args:
             **filter_options: Field-value pairs to filter the documents.
@@ -64,7 +65,7 @@ class NoSQLBaseDocument(Document, Generic[T]):
             return None
 
     @classmethod
-    def bulk_find(cls: Type[T], **filter_options) -> list[T]:
+    def bulk_find(cls: type[T], **filter_options) -> list[T]:
         """Return every document that matches the provided filters.
         Args:
             **filter_options: Field-value pairs to filter the documents.
@@ -77,7 +78,7 @@ class NoSQLBaseDocument(Document, Generic[T]):
             return []
 
     @classmethod
-    def bulk_delete(cls: Type[T], **filter_options) -> int:
+    def bulk_delete(cls: type[T], **filter_options) -> int:
         """Delete every document that matches the provided filters.
         Args:
             **filter_options: Field-value pairs to filter the documents.
@@ -92,7 +93,7 @@ class NoSQLBaseDocument(Document, Generic[T]):
             return 0
 
     @classmethod
-    def get_collection_name(cls: Type[T]) -> str:
+    def get_collection_name(cls: type[T]) -> str:
         """Return the Mongo collection name configured on the Settings inner class.
         Raises:
             ImproperlyConfigured: If the Settings class or name attribute is missing.

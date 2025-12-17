@@ -1,9 +1,11 @@
-import requests
 import ast
-import time
 import json
-from requests.auth import HTTPBasicAuth
+import time
+
+import requests
 from fastapi import HTTPException
+from requests.auth import HTTPBasicAuth
+
 from backend.settings import settings
 
 
@@ -35,11 +37,11 @@ def trigger_dag(dag_id: str, conf: dict) -> dict:
             "state": data["state"],
         }
 
-    except requests.HTTPError:
+    except requests.HTTPError as err:
         raise HTTPException(
             status_code=response.status_code,
             detail=f"Failed to trigger DAG: {response.text}",
-        )
+        ) from err
 
 
 def get_extracted_sources_status(dag_id: str, dag_run_id: str) -> dict:
@@ -82,11 +84,11 @@ def get_extracted_sources_status(dag_id: str, dag_run_id: str) -> dict:
             **extraction_summary,
         }
 
-    except requests.HTTPError:
+    except requests.HTTPError as err:
         raise HTTPException(
             status_code=response.status_code,
             detail=f"Failed to fetch DAG run status: {response.text}",
-        )
+        ) from err
 
 
 def get_dag_status_stream(dag_id: str, dag_run_id: str, poll_interval: int = 5) -> str:
@@ -144,11 +146,11 @@ def list_dag_runs(dag_id: str, limit: int = 25, offset: int = 0) -> dict:
         )
         response.raise_for_status()
         return response.json()
-    except requests.HTTPError:
+    except requests.HTTPError as err:
         raise HTTPException(
             status_code=response.status_code,
             detail=f"Failed to list DAG runs: {response.text}",
-        )
+        ) from err
 
 
 def get_dag_run(dag_id: str, dag_run_id: str) -> dict:
@@ -169,11 +171,11 @@ def get_dag_run(dag_id: str, dag_run_id: str) -> dict:
         )
         response.raise_for_status()
         return response.json()
-    except requests.HTTPError:
+    except requests.HTTPError as err:
         raise HTTPException(
             status_code=response.status_code,
             detail=f"Failed to fetch DAG run: {response.text}",
-        )
+        ) from err
 
 
 def get_task_log(
@@ -239,8 +241,8 @@ def cancel_dag_run(dag_id: str, dag_run_id: str) -> dict:
             "dag_id": dag_id,
             "dag_run_id": dag_run_id,
         }
-    except requests.HTTPError:
+    except requests.HTTPError as err:
         raise HTTPException(
             status_code=response.status_code,
             detail=f"Failed to cancel DAG run: {response.text}",
-        )
+        ) from err
