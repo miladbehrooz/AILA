@@ -1,13 +1,14 @@
 from functools import cached_property
-from typing import Any, List, Union
+from typing import Any, Union
 
 import numpy as np
 from numpy.typing import NDArray
 
+from backend.settings.settings import settings
 from backend.utils import logger
 from backend.utils.singleton import SingletonMeta
+
 from .base import EmbeddingFactory, ProviderName
-from backend.settings.settings import settings
 
 
 class EmbeddingModelSingleton(metaclass=SingletonMeta):
@@ -109,10 +110,10 @@ class EmbeddingModelSingleton(metaclass=SingletonMeta):
 
     def __call__(
         self,
-        input_text: Union[str, List[str]],
+        input_text: Union[str, list[str]],
         *,
         to_list: bool = True,
-    ) -> Union[NDArray[np.float32], List[float], List[List[float]]]:
+    ) -> Union[NDArray[np.float32], list[float], list[list[float]]]:
         """
         Generate embeddings for input text or list of texts.
 
@@ -121,7 +122,7 @@ class EmbeddingModelSingleton(metaclass=SingletonMeta):
             to_list (bool): If True, return as list; otherwise, return as numpy array.
 
         Returns:
-            NDArray[np.float32] | List[float] | List[List[float]]: Embedding(s) for the input.
+            NDArray[np.float32] | list[float] | list[list[float]]: Embedding(s) for the input.
 
         Raises:
             AttributeError: If the embedding model is missing required methods.
@@ -131,7 +132,6 @@ class EmbeddingModelSingleton(metaclass=SingletonMeta):
                 vec = self._model.embed_query(input_text)
                 return vec if to_list else np.asarray(vec, dtype=np.float32)
 
-            # list[str]
             vecs = self._model.embed_documents(list(input_text))
             return vecs if to_list else np.asarray(vecs, dtype=np.float32)
 

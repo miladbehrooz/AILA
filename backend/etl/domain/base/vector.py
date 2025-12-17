@@ -1,6 +1,6 @@
 import uuid
 from abc import ABC
-from typing import Any, Callable, Dict, Generic, Type, TypeVar
+from typing import Any, Callable, Generic, TypeVar
 from uuid import UUID
 
 import numpy as np
@@ -17,11 +17,10 @@ from qdrant_client.http.models import (
 )
 from qdrant_client.models import CollectionInfo, PointStruct, Record
 
-from backend.etl.domain.exceptions import ImproperlyConfigured
-from backend.infrastructure.db.qdrant import connection
-from backend.etl.domain.types import DataCategory
 from backend.embeddings.embeddings import EmbeddingModelSingleton
-
+from backend.etl.domain.exceptions import ImproperlyConfigured
+from backend.etl.domain.types import DataCategory
+from backend.infrastructure.db.qdrant import connection
 
 T = TypeVar("T", bound="VectorBaseDocument")
 
@@ -56,7 +55,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return hash(self.id)
 
     @classmethod
-    def from_record(cls: Type[T], point: Record) -> T:
+    def from_record(cls: type[T], point: Record) -> T:
         """Convert a Qdrant record into a document instance.
 
         Args:
@@ -136,7 +135,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return item
 
     @classmethod
-    def bulk_insert(cls: Type[T], documents: list["VectorBaseDocument"]) -> bool:
+    def bulk_insert(cls: type[T], documents: list["VectorBaseDocument"]) -> bool:
         """Insert many documents handling collection bootstrapping.
 
         Args:
@@ -166,7 +165,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return True
 
     @classmethod
-    def _bulk_insert(cls: Type[T], documents: list["VectorBaseDocument"]) -> None:
+    def _bulk_insert(cls: type[T], documents: list["VectorBaseDocument"]) -> None:
         """Low-level insertion that assumes the collection exists.
 
         Args:
@@ -178,7 +177,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def bulk_find(
-        cls: Type[T], limit: int = 10, **kwargs
+        cls: type[T], limit: int = 10, **kwargs
     ) -> tuple[list[T], UUID | None]:
         """Scroll through the collection and return results with the next offset.
 
@@ -202,7 +201,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def _bulk_find(
-        cls: Type[T], limit: int = 10, **kwargs
+        cls: type[T], limit: int = 10, **kwargs
     ) -> tuple[list[T], UUID | None]:
         """Execute the Qdrant scroll call for the collection.
 
@@ -233,7 +232,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return documents, next_offset
 
     @classmethod
-    def bulk_delete(cls: Type[T], batch_id: UUID | str, chunk_size: int = 128) -> int:
+    def bulk_delete(cls: type[T], batch_id: UUID | str, chunk_size: int = 128) -> int:
         """Delete all records that belong to the provided batch ID.
 
         Args:
@@ -253,7 +252,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return deleted
 
     @classmethod
-    def _bulk_delete(cls: Type[T], batch_id: UUID | str, chunk_size: int = 128) -> int:
+    def _bulk_delete(cls: type[T], batch_id: UUID | str, chunk_size: int = 128) -> int:
         """Perform batched deletions for a batch_id filter.
 
         Args:
@@ -308,7 +307,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return deleted
 
     @classmethod
-    def search(cls: Type[T], query_vector: list, limit: int = 10, **kwargs) -> list[T]:
+    def search(cls: type[T], query_vector: list, limit: int = 10, **kwargs) -> list[T]:
         """Search the vector store for the closest matches.
 
         Args:
@@ -331,7 +330,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return documents
 
     @classmethod
-    def _search(cls: Type[T], query_vector: list, limit: int = 10, **kwargs) -> list[T]:
+    def _search(cls: type[T], query_vector: list, limit: int = 10, **kwargs) -> list[T]:
         """Execute the raw Qdrant search call.
 
         Args:
@@ -356,7 +355,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return documents
 
     @classmethod
-    def get_or_create_collection(cls: Type[T]) -> CollectionInfo:
+    def get_or_create_collection(cls: type[T]) -> CollectionInfo:
         """Ensure the backing collection exists and return its metadata.
 
         Returns:
@@ -380,7 +379,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
             return connection.get_collection(collection_name=collection_name)
 
     @classmethod
-    def create_collection(cls: Type[T]) -> bool:
+    def create_collection(cls: type[T]) -> bool:
         """Create the Qdrant collection using the class metadata.
 
         Returns:
@@ -418,7 +417,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         )
 
     @classmethod
-    def get_category(cls: Type[T]) -> DataCategory:
+    def get_category(cls: type[T]) -> DataCategory:
         """Return the business category configured for the document.
 
         Returns:
@@ -433,7 +432,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return cls.Config.category
 
     @classmethod
-    def get_collection_name(cls: Type[T]) -> str:
+    def get_collection_name(cls: type[T]) -> str:
         """Return the collection name declared on the Config inner class.
 
         Returns:
@@ -448,7 +447,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         return cls.Config.name
 
     @classmethod
-    def get_use_vector_index(cls: Type[T]) -> bool:
+    def get_use_vector_index(cls: type[T]) -> bool:
         """Return whether the collection should maintain a vector index.
 
         Returns:
@@ -461,8 +460,8 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def group_by_class(
-        cls: Type["VectorBaseDocument"], documents: list["VectorBaseDocument"]
-    ) -> Dict["VectorBaseDocument", list["VectorBaseDocument"]]:
+        cls: type["VectorBaseDocument"], documents: list["VectorBaseDocument"]
+    ) -> dict["VectorBaseDocument", list["VectorBaseDocument"]]:
         """Group documents by their Python class.
 
         Args:
@@ -475,8 +474,8 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def group_by_category(
-        cls: Type[T], documents: list[T]
-    ) -> Dict[DataCategory, list[T]]:
+        cls: type[T], documents: list[T]
+    ) -> dict[DataCategory, list[T]]:
         """Group documents by their configured data category.
 
         Args:
@@ -489,8 +488,8 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def _group_by(
-        cls: Type[T], documents: list[T], selector: Callable[[T], Any]
-    ) -> Dict[Any, list[T]]:
+        cls: type[T], documents: list[T], selector: Callable[[T], Any]
+    ) -> dict[Any, list[T]]:
         """Group documents using the provided selector function.
 
         Args:
@@ -512,7 +511,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def collection_name_to_class(
-        cls: Type["VectorBaseDocument"], collection_name: str
+        cls: type["VectorBaseDocument"], collection_name: str
     ) -> type["VectorBaseDocument"]:
         """Return the subclass that manages the provided collection.
 
@@ -540,7 +539,7 @@ class VectorBaseDocument(BaseModel, Generic[T], ABC):
         raise ValueError(f"No subclass found for collection name: {collection_name}")
 
     @classmethod
-    def _has_class_attribute(cls: Type[T], attribute_name: str) -> bool:
+    def _has_class_attribute(cls: type[T], attribute_name: str) -> bool:
         """Check if the class or any base defines the attribute annotation.
 
         Args:

@@ -4,12 +4,11 @@ from typing import Any
 import pandas as pd
 import requests
 import streamlit as st
+from loguru import logger
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 
 from frontend.services import etl_service
 from frontend.utils.errors import show_technical_issue
-
-from loguru import logger
 
 _SESSION_SELECTED_RUN = "upload_dashboard_selected_run"
 

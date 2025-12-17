@@ -2,6 +2,7 @@ from typing import Any
 
 import requests
 import streamlit as st
+from loguru import logger
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from frontend.services.etl_service import (
@@ -15,7 +16,6 @@ from frontend.services.etl_service import (
 from frontend.state import source_fields
 from frontend.utils.errors import show_technical_issue
 from frontend.utils.text import human_join
-from loguru import logger
 
 ACTIVE_DAG_RUN_KEY = "active_dag_run_id"
 CANCEL_MESSAGE_KEY = "cancel_run_message"

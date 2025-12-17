@@ -1,34 +1,33 @@
 
-from .cleaning_data_handlers import (
-    CleaningDataHandler,
-    ArticleCleaningHandler,
-    YoutubeCleaningHandler,
-    RepositoryCleaningHandler,
-    PDFCleaningHandler,
-)
-
-from .chunking_data_handlers import (
-    ChunkingDataHandler,
-    ArticleChunkingHandler,
-    PDFChunkingHandler,
-    YoutubeChunkingHandler,
-    RepositoryChunkingHandler,
-)
-from .embedding_data_handlers import (
-    EmbeddingDataHandler,
-    ArticleEmbeddingHandler,
-    RepositoryEmbeddingHandler,
-    YoutubeEmbeddingHandler,
-    PDFEmbeddingHandler,
-)
-
+from backend.etl.domain.cleaned_documents import VectorBaseDocument
 from backend.etl.domain.documents import (
     BaseDocument,
     NoSQLBaseDocument,
 )
-from backend.etl.domain.cleaned_documents import VectorBaseDocument
 from backend.etl.domain.types import DataCategory
 from backend.utils import logger
+
+from .chunking_data_handlers import (
+    ArticleChunkingHandler,
+    ChunkingDataHandler,
+    PDFChunkingHandler,
+    RepositoryChunkingHandler,
+    YoutubeChunkingHandler,
+)
+from .cleaning_data_handlers import (
+    ArticleCleaningHandler,
+    CleaningDataHandler,
+    PDFCleaningHandler,
+    RepositoryCleaningHandler,
+    YoutubeCleaningHandler,
+)
+from .embedding_data_handlers import (
+    ArticleEmbeddingHandler,
+    EmbeddingDataHandler,
+    PDFEmbeddingHandler,
+    RepositoryEmbeddingHandler,
+    YoutubeEmbeddingHandler,
+)
 
 
 class CleaningHandlerFactory:

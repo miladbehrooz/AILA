@@ -1,8 +1,10 @@
 from typing import Annotated
+
 from airflow.decorators import task
+
 from backend.etl.domain.base.vector import VectorBaseDocument
-from backend.utils.misc import batch
 from backend.utils import logger
+from backend.utils.misc import batch
 
 
 @task
@@ -36,10 +38,11 @@ def load_to_vector_db(
 
 
 if __name__ == "__main__":
+    from uuid import uuid4
+
+    from backend.etl.tasks.chunk_and_embed import chunk_and_embed_documents
     from backend.etl.tasks.clean import clean_documents
     from backend.etl.tasks.query_data_warehouse import query_data_warehouse
-    from backend.etl.tasks.chunk_and_embed import chunk_and_embed_documents
-    from uuid import uuid4
 
     batch_id = uuid4()
     documents = query_data_warehouse(batch_id, True)

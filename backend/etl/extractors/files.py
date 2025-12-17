@@ -1,11 +1,14 @@
 import hashlib
 from pathlib import Path
 from uuid import UUID
+
 from docling.document_converter import DocumentConverter
-from .base import FileExtractor, ExtractionResult
+
 from backend.etl.domain.documents import PDFDocument
 from backend.settings import settings
 from backend.utils import logger
+
+from .base import ExtractionResult, FileExtractor
 
 
 class PDFFileExtractor(FileExtractor):

@@ -3,18 +3,18 @@ from typing import Generic, TypeVar, cast
 
 from backend.embeddings import EmbeddingModelSingleton
 from backend.etl.domain.chunks import (
-    Chunk,
     ArticleChunk,
+    Chunk,
+    PDFChunk,
     RepositoryChunk,
     YoutubeChunk,
-    PDFChunk,
 )
 from backend.etl.domain.embedded_chunks import (
-    EmbeddedChunk,
     EmbeddedArticleChunk,
+    EmbeddedChunk,
+    EmbeddedPDFChunk,
     EmbeddedRepositoryChunk,
     EmbeddedYoutubeChunk,
-    EmbeddedPDFChunk,
 )
 
 ChunkT = TypeVar("ChunkT", bound=Chunk)

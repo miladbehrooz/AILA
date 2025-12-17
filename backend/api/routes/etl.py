@@ -1,28 +1,30 @@
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Query, UploadFile, File, HTTPException
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
+
+from backend.settings import settings
+
 from ..models.etl import (
-    ETLRequest,
-    TriggerDAGResponse,
-    ExtractedSourcesResponse,
-    DagRunsResponse,
-    DagRunDetailResponse,
-    TaskLogResponse,
     CancelDagRunResponse,
+    DagRunDetailResponse,
+    DagRunsResponse,
+    ETLRequest,
+    ExtractedSourcesResponse,
+    TaskLogResponse,
+    TriggerDAGResponse,
     UploadedFileResponse,
 )
 from ..services.airflow_service import (
-    trigger_etl_dag,
-    get_etl_extracted_sources,
-    get_etl_status_stream,
-    list_etl_runs,
-    get_etl_run,
-    get_etl_task_logs,
     cancel_etl_run,
+    get_etl_extracted_sources,
+    get_etl_run,
+    get_etl_status_stream,
+    get_etl_task_logs,
+    list_etl_runs,
+    trigger_etl_dag,
 )
-from backend.settings import settings
 
 router = APIRouter(tags=["ETL"])
 
@@ -131,8 +133,11 @@ def cancel_run(dag_run_id: str) -> CancelDagRunResponse:
     return cancel_etl_run(dag_run_id)
 
 
+FILE_UPLOAD_FIELD = File(...)
+
+
 @router.post("/files", response_model=UploadedFileResponse)
-async def upload_file(file: UploadFile = File(...)) -> UploadedFileResponse:
+async def upload_file(file: UploadFile = FILE_UPLOAD_FIELD) -> UploadedFileResponse:
     """Persist an uploaded file to the backend uploads directory.
 
     Args:
@@ -153,7 +158,9 @@ async def upload_file(file: UploadFile = File(...)) -> UploadedFileResponse:
     except Exception as exc:  # pragma: no cover - defensive
         if destination.exists():
             destination.unlink()
-        raise HTTPException(status_code=500, detail=f"Failed to store file: {exc}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to store file: {exc}"
+        ) from exc
 
     relative_path = destination.relative_to(settings.PROJECT_ROOT)
 

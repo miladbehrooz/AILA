@@ -1,4 +1,5 @@
-from mongoengine import StringField, DictField, UUIDField
+from mongoengine import DictField, StringField, UUIDField
+
 from backend.etl.domain.base.nosql import NoSQLBaseDocument
 from backend.etl.domain.types import DataCategory
 

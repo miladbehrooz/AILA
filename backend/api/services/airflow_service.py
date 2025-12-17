@@ -1,18 +1,19 @@
-from uuid import UUID, uuid4
 import json
 from typing import Any
+from uuid import UUID, uuid4
 
-from backend.utils import logger
 from backend.etl.tasks.clean_data_warehouse import clean_data_warehouse
 from backend.etl.tasks.clean_vector_database import clean_vector_database
+from backend.utils import logger
+
 from ..utils.airflow_client import (
-    trigger_dag,
-    get_extracted_sources_status,
-    get_dag_status_stream,
-    list_dag_runs,
-    get_dag_run,
-    get_task_log,
     cancel_dag_run,
+    get_dag_run,
+    get_dag_status_stream,
+    get_extracted_sources_status,
+    get_task_log,
+    list_dag_runs,
+    trigger_dag,
 )
 
 

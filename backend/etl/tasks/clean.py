@@ -1,6 +1,8 @@
 from typing import Annotated
-from backend.etl.preprocessing.dispatchers import CleaningDispatcher
+
 from airflow.decorators import task
+
+from backend.etl.preprocessing.dispatchers import CleaningDispatcher
 
 
 @task
@@ -24,8 +26,9 @@ def clean_documents(
 
 
 if __name__ == "__main__":
-    from backend.etl.tasks.query_data_warehouse import query_data_warehouse
     from uuid import uuid4
+
+    from backend.etl.tasks.query_data_warehouse import query_data_warehouse
 
     batch_id = uuid4()
     documents = query_data_warehouse(batch_id, True)

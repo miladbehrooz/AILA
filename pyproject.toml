@@ -32,6 +32,13 @@ python-dotenv = "^1.0.1"
 uvicorn = "^0.32.0"
 python-multipart = "^0.0.20"
 
+[tool.ruff]
+line-length = 150
+fix = true
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "Q", "UP"]
+
 
 
 

@@ -1,5 +1,6 @@
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
+
 from backend.settings.settings import settings
 from backend.utils import logger
 
