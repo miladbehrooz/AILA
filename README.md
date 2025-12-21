@@ -1,12 +1,14 @@
-# AI Learning Assitant
+# AILA Ingest
 
-AI Learning Assistant (AILA) is being built in phases. **Phase 1, which you are currently viewing, delivers the production-ready full-stack ETL pipeline** that ingests heterogeneous knowledge sources (articles, PDFs, GitHub repositories, YouTube videos), cleans and chunks them, and generates vector embeddings. Later phases focus on Retrieval-Augmented Generation (RAG) and agentic workflows built on top of this pipeline.
+AILA Ingest is a **production-ready, full-stack ingestion platform** that orchestrates the entire life cycle for heterogeneous knowledge sources—articles, PDFs, GitHub repositories, YouTube videos, and more. It extracts raw content, standardizes and enriches it, and persists vector embeddings that are ready to plug into retrieval-augmented applications.
+
+This broader mission goes beyond classic ETL by emphasizing automated source acquisition, observability, and downstream-ready vector stores that can feed copilots, analytics, or any AI-fueled workflow.
 
 ---
 
 ## Table of Contents
 
-- [AI Learning Assitant](#ai-learning-assitant)
+- [AILA Ingest](#aila-ingest)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
   - [Architecture](#architecture)
@@ -17,6 +19,7 @@ AI Learning Assistant (AILA) is being built in phases. **Phase 1, which you are 
   - [Configuration](#configuration)
   - [Running the Stack](#running-the-stack)
   - [Project Structure](#project-structure)
+  - [License](#license)
 
 ---
 
@@ -33,7 +36,7 @@ AI Learning Assistant (AILA) is being built in phases. **Phase 1, which you are 
 ---
 
 ## Architecture
-![alt text](./images/aila.jpg)
+![alt text](./images/aila-ingest.jpg)
 
 - **Backend API**: FastAPI endpoints triggering Airflow DAGs, exposing run status, logs, and file upload endpoints.
 - **Airflow Tasks**: Python-based tasks in `backend/etl/tasks` orchestrate dispatchers and document models.
@@ -136,3 +139,9 @@ frontend/
 docker-compose.yml    # Defines Mongo, Qdrant, Airflow, backend, frontend
 README.md
 ```
+
+---
+
+## License
+
+Released under the [MIT License](LICENSE).
